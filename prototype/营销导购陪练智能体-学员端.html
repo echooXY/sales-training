@@ -1,0 +1,2133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Studio Training - 学员端</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', 'Noto Serif SC', -apple-system, sans-serif;
+  background: #e8e4df;
+  display: flex; justify-content: center; align-items: center;
+  min-height: 100vh; padding: 20px;
+}
+
+/* Phone Shell */
+.phone-shell {
+  width: 375px; height: 780px;
+  background: #0d0d0d;
+  border-radius: 22px;
+  padding: 14px 8px 12px 8px;
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.5),
+    0 0 0 3px #1a1a1a,
+    inset 0 0 0 1px rgba(255,255,255,0.08),
+    inset 0 1px 2px rgba(255,255,255,0.04);
+  position: relative;
+}
+
+/* Side buttons */
+.phone-side-btn {
+  position: absolute; background: #2a2a2a; border-radius: 1px; z-index: 1;
+}
+.phone-side-btn.volume-up {
+  left: -3px; top: 150px; width: 3px; height: 18px;
+}
+.phone-side-btn.volume-down {
+  left: -3px; top: 180px; width: 3px; height: 18px;
+}
+.phone-side-btn.power {
+  right: -3px; top: 170px; width: 3px; height: 24px;
+}
+
+/* Home Indicator */
+.home-indicator {
+  width: 120px; height: 4px; border-radius: 2px;
+  background: rgba(255,255,255,0.4);
+  margin: 6px auto 6px; flex-shrink: 0;
+}
+
+.phone-screen {
+  width: 100%; height: 100%;
+  border-radius: 14px; overflow: hidden;
+  background: #f6f4f0;
+  display: flex; flex-direction: column;
+  position: relative;
+  padding-top: 36px;
+  box-sizing: border-box;
+  box-shadow: inset 0 0 80px rgba(255,255,255,0.03);
+}
+
+/* Dynamic Island */
+.dynamic-island {
+  position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+  width: 120px; height: 28px; border-radius: 14px;
+  background: #0d0d0d; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 14px; flex-shrink: 0;
+}
+.dynamic-island .di-camera {
+  position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+  width: 4px; height: 4px; border-radius: 50%; background: #1a1a1a;
+}
+.dynamic-island .di-time { font-size: 8px; color: rgba(255,255,255,0.7); font-weight: 500; }
+.dynamic-island .di-battery { font-size: 8px; color: rgba(255,255,255,0.7); }
+
+/* Header */
+.app-header {
+  height: 36px; background: #3d4f6b; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+/* Content Area */
+.content-area {
+  flex: 1; overflow-y: auto; background: #f6f4f0;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 60px;
+  box-sizing: border-box;
+}
+.content-area::-webkit-scrollbar { width: 3px; }
+.content-area::-webkit-scrollbar-thumb { background: #c0b8a8; border-radius: 3px; }
+
+/* Tab Bar */
+.tab-bar {
+  height: 50px; background: #fff; border-top: 1px solid #e8e4df;
+  display: flex; flex-shrink: 0;
+}
+.tab-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-size: 10px; color: #999; cursor: pointer;
+  transition: color 0.2s; min-height: 44px;
+  border: none; background: none; font-family: inherit;
+}
+.tab-item.active { color: #b8976e; font-weight: 600; }
+.tab-item .tab-icon { font-size: 16px; margin-bottom: 2px; }
+
+/* Cards */
+.card {
+  background: #fff; border-radius: 10px; padding: 14px;
+  margin: 8px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.card-sm { padding: 10px 12px; margin: 6px 12px; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 8px 16px; border-radius: 8px; font-size: 13px;
+  font-weight: 600; cursor: pointer; border: none;
+  transition: all 0.2s; min-height: 36px; min-width: 44px;
+  font-family: inherit;
+}
+.btn-primary { background: #b8976e; color: #fff; }
+.btn-primary:hover { background: #a07d53; }
+.btn-outline { background: #fff; color: #3d4f6b; border: 1.5px solid #3d4f6b; }
+.btn-ghost { background: transparent; color: #3d4f6b; }
+.btn-block { width: 100%; display: flex; justify-content: center; }
+.btn-sm { padding: 6px 12px; font-size: 11px; }
+
+/* Tags */
+.tag {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 10px; font-weight: 600;
+}
+.tag-green { background: #e6f7e6; color: #389e0d; }
+.tag-yellow { background: #fff7e6; color: #ad6800; }
+.tag-orange { background: #fff2e8; color: #d46b08; }
+.tag-red { background: #fff1f0; color: #cf1322; }
+
+/* Toast */
+.toast {
+  position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
+  background: #333; color: #fff; padding: 8px 16px; border-radius: 20px;
+  font-size: 11px; z-index: 100; opacity: 0; pointer-events: none;
+  transition: opacity 0.3s;
+}
+.toast.show { opacity: 1; }
+
+/* Modal */
+.modal-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50; border-radius: 16px;
+}
+.modal-box {
+  background: #fff; border-radius: 12px; padding: 20px;
+  width: 260px; text-align: center;
+}
+.modal-box h4 { font-size: 14px; margin-bottom: 8px; color: #1a1a2e; }
+.modal-box p { font-size: 12px; color: #666; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 10px; justify-content: center; }
+
+/* Progress Bar */
+.progress-bar {
+  height: 6px; background: #e8e4df; border-radius: 3px; overflow: hidden;
+  margin-top: 8px;
+}
+.progress-fill { height: 100%; background: #b8976e; border-radius: 3px; transition: width 0.5s; }
+
+/* Steps */
+.step-indicator {
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; padding: 10px 0; font-size: 10px; color: #999;
+}
+.step-indicator .step {
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700;
+  border: 2px solid #ddd; background: #fff; color: #999;
+}
+.step-indicator .step.done { border-color: #52c41a; background: #52c41a; color: #fff; }
+.step-indicator .step.active { border-color: #b8976e; background: #b8976e; color: #fff; }
+.step-indicator .step-line { width: 24px; height: 2px; background: #ddd; }
+.step-indicator .step-line.done { background: #52c41a; }
+
+/* Chat */
+.chat-area { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+.chat-msg { display: flex; gap: 8px; max-width: 85%; }
+.chat-msg.ai { align-self: flex-start; }
+.chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.chat-avatar {
+  width: 28px; height: 28px; border-radius: 50%; background: #e8e4df;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; flex-shrink: 0;
+}
+.chat-bubble {
+  padding: 8px 12px; border-radius: 12px; font-size: 12px; line-height: 1.5;
+  word-break: break-word;
+}
+.chat-bubble.ai { background: #e8e4df; color: #1a1a2e; border-bottom-left-radius: 4px; }
+.chat-bubble.user { background: #3d4f6b; color: #fff; border-bottom-right-radius: 4px; }
+.chat-time { font-size: 9px; color: #999; margin-top: 2px; }
+.chat-trigger-tag { margin-top: 4px; }
+
+/* Radar placeholder */
+.radar-placeholder {
+  width: 140px; height: 140px; margin: 0 auto;
+}
+
+/* S02 - industry tabs */
+.industry-tabs {
+  display: flex; gap: 6px; padding: 0 12px; overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.industry-tab {
+  padding: 6px 14px; border-radius: 16px; font-size: 11px;
+  white-space: nowrap; cursor: pointer; border: 1.5px solid #ddd;
+  background: #fff; color: #666; font-family: inherit;
+}
+.industry-tab.active { border-color: #b8976e; color: #b8976e; background: #fdf8f3; }
+
+/* S02 - scene cards grid */
+.scene-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  padding: 8px 12px;
+}
+.scene-card {
+  background: #fff; border-radius: 10px; padding: 12px;
+  border: 2px solid transparent; cursor: pointer;
+  transition: all 0.2s;
+}
+.scene-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.scene-card.selected { border-color: #b8976e; box-shadow: 0 0 0 2px rgba(184,151,110,0.2); }
+.scene-card .scene-icon { font-size: 24px; margin-bottom: 4px; }
+.scene-card .scene-name { font-size: 12px; font-weight: 600; color: #1a1a2e; }
+.scene-card .scene-meta { font-size: 10px; color: #999; margin-top: 2px; }
+
+/* S02 - difficulty cards */
+.diff-cards { padding: 8px 12px; display: flex; flex-direction: column; gap: 8px; }
+.diff-card {
+  background: #fff; border-radius: 10px; padding: 14px;
+  border: 2px solid transparent; cursor: pointer;
+  display: flex; gap: 10px; transition: all 0.2s;
+}
+.diff-card.selected { border-color: #b8976e; }
+.diff-card .diff-tag-col { flex-shrink: 0; }
+.diff-card .diff-body { flex: 1; }
+.diff-card .diff-level { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.diff-card .diff-feature { font-size: 10px; color: #666; margin-bottom: 2px; }
+.diff-card .diff-focus { font-size: 10px; color: #b8976e; margin-top: 4px; }
+
+/* S03 - todo steps */
+.todo-steps {
+  display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 10px;
+  background: #fff; border-bottom: 1px solid #eee; font-size: 9px;
+}
+.todo-step {
+  padding: 3px 8px; border-radius: 10px; background: #f0f0f0;
+  color: #999;
+}
+.todo-step.done { background: #e6f7e6; color: #389e0d; }
+.todo-step.current { background: #fff2e8; color: #d46b08; font-weight: 700; }
+
+/* S03 voice */
+.voice-call-bar {
+  background: #3d4f6b; color: #fff; padding: 10px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px;
+}
+.voice-mic-btn {
+  width: 60px; height: 60px; border-radius: 50%; background: #b8976e;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; color: #fff; cursor: pointer;
+  animation: pulse-ring 2s infinite;
+  border: none;
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(184,151,110,0.5); }
+  70% { box-shadow: 0 0 0 16px rgba(184,151,110,0); }
+  100% { box-shadow: 0 0 0 0 rgba(184,151,110,0); }
+}
+
+/* S04 report */
+.score-circle {
+  width: 100px; height: 100px; border-radius: 50%;
+  background: conic-gradient(#b8976e 0deg 280deg, #e8e4df 280deg 360deg);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto;
+}
+.score-inner {
+  width: 80px; height: 80px; border-radius: 50%; background: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.score-num { font-size: 28px; font-weight: 700; color: #1a1a2e; }
+.score-max { font-size: 10px; color: #999; }
+
+/* Punctuation highlight */
+.punctuation-badge {
+  display: inline-block; background: #fff2e8; color: #d46b08;
+  padding: 1px 6px; border-radius: 8px; font-size: 9px; margin-left: 4px;
+}
+
+/* S05 history list */
+.history-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; background: #fff; border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+.history-row:hover { background: #fdf8f3; }
+
+/* Filters */
+.filter-row {
+  display: flex; gap: 6px; padding: 6px 12px; overflow-x: auto;
+}
+.filter-chip {
+  padding: 4px 10px; border-radius: 12px; font-size: 10px;
+  border: 1px solid #ddd; background: #fff; cursor: pointer;
+  white-space: nowrap; font-family: inherit;
+}
+.filter-chip.active { background: #b8976e; color: #fff; border-color: #b8976e; }
+
+/* Playback controls */
+.playback-bar {
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+  background: #fff; border-top: 1px solid #eee;
+}
+
+/* Pulse for AI speaking */
+.ai-speaking-indicator {
+  display: flex; align-items: center; gap: 6px; font-size: 10px; color: #999;
+  padding: 4px 10px;
+}
+.wave-bars { display: flex; gap: 2px; align-items: flex-end; height: 14px; }
+.wave-bar {
+  width: 3px; background: #b8976e; border-radius: 2px;
+  animation: wave 0.8s ease-in-out infinite;
+}
+.wave-bar:nth-child(1) { height: 8px; animation-delay: 0s; }
+.wave-bar:nth-child(2) { height: 14px; animation-delay: 0.1s; }
+.wave-bar:nth-child(3) { height: 10px; animation-delay: 0.2s; }
+.wave-bar:nth-child(4) { height: 14px; animation-delay: 0.3s; }
+.wave-bar:nth-child(5) { height: 6px; animation-delay: 0.4s; }
+@keyframes wave {
+  0%, 100% { height: 6px; }
+  50% { height: 14px; }
+}
+
+/* Bottom fixed area */
+.bottom-fixed {
+  position: sticky; bottom: 0; background: #fff;
+  border-top: 1px solid #eee; padding: 8px 12px;
+}
+
+/* Hidden by default */
+.screen { display: none; }
+.screen.active { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+/* Avatar */
+.avatar-circle {
+  width: 36px; height: 36px; border-radius: 50%; background: #b8976e;
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
+}
+
+/* Greeting row */
+.greeting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px 4px;
+}
+.greeting-text { font-size: 15px; font-weight: 600; color: #1a1a2e; }
+.greeting-sub { font-size: 11px; color: #999; }
+
+/* Input bar */
+.input-bar {
+  display: flex; gap: 8px; align-items: flex-end; padding: 8px 10px;
+  background: #fff; border-top: 1px solid #eee;
+}
+.input-bar input {
+  flex: 1; border: 1.5px solid #e0dcd5; border-radius: 18px;
+  padding: 8px 14px; font-size: 12px; outline: none; font-family: inherit;
+}
+.input-bar input:focus { border-color: #b8976e; }
+.send-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: none;
+  background: #ddd; color: #fff; font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.send-btn.active { background: #b8976e; }
+
+/* SVG Charts */
+.chart-container { display: flex; justify-content: center; align-items: center; }
+.chart-container canvas, .chart-container svg { max-width: 100%; }
+
+/* Score row */
+.score-row { display: flex; align-items: center; gap: 6px; }
+.score-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600;
+}
+.score-badge.good { background: #e6f7e6; color: #389e0d; }
+.score-badge.pass { background: #fff7e6; color: #ad6800; }
+.score-badge.fail { background: #fff1f0; color: #cf1322; }
+
+/* Review mode */
+.review-item { padding: 8px 12px; border-bottom: 1px solid #f5f5f5; font-size: 11px; }
+.review-item .deduction { color: #d46b08; font-size: 10px; }
+
+/* ===== SSO Login ===== */
+.login-container {
+  position: absolute; inset: 0; background: #f6f4f0;
+  display: none; flex-direction: column; align-items: center;
+  justify-content: center; z-index: 200; border-radius: 16px;
+  padding: 20px;
+}
+.login-logo { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+.login-subtitle { font-size: 12px; color: #999; margin-bottom: 28px; }
+.login-form { width: 100%; max-width: 280px; display: flex; flex-direction: column; gap: 12px; }
+.login-input {
+  width: 100%; padding: 10px 14px; border: 1.5px solid #e0dcd5; border-radius: 8px;
+  font-size: 13px; font-family: inherit; outline: none; background: #fff;
+}
+.login-input:focus { border-color: #b8976e; }
+.login-code-row { display: flex; gap: 8px; }
+.login-code-row .login-input { flex: 1; }
+.login-code-btn {
+  white-space: nowrap; padding: 10px 12px; font-size: 11px; font-weight: 600;
+  border-radius: 8px; border: none; cursor: pointer; font-family: inherit;
+  background: #e8e4df; color: #666; transition: all 0.2s;
+}
+.login-code-btn.active { background: #b8976e; color: #fff; }
+.login-code-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.login-btn {
+  width: 100%; padding: 12px; background: #b8976e; color: #fff;
+  border: none; border-radius: 8px; font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: background 0.2s;
+}
+.login-btn:hover { background: #a07d53; }
+.login-divider {
+  display: flex; align-items: center; gap: 10px; margin: 8px 0;
+  font-size: 11px; color: #999;
+}
+.login-divider::before, .login-divider::after {
+  content: ''; flex: 1; height: 1px; background: #e0dcd5;
+}
+.sso-buttons { display: flex; gap: 10px; justify-content: center; }
+.sso-btn {
+  width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid #e0dcd5;
+  background: #fff; font-size: 20px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; transition: all 0.2s;
+}
+.sso-btn:hover { border-color: #b8976e; }
+.login-footer {
+  margin-top: 20px; font-size: 11px; color: #b8976e; cursor: pointer;
+}
+.login-footer:hover { text-decoration: underline; }
+.login-loading {
+  margin-top: 16px; display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: #b8976e;
+}
+.login-spinner {
+  width: 16px; height: 16px; border: 2px solid #e8e4df;
+  border-top-color: #b8976e; border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== Multi-role indicator ===== */
+.multi-role-bar {
+  background: #fff; padding: 6px 10px; border-bottom: 1px solid #eee;
+  display: flex; align-items: center; gap: 8px; font-size: 10px;
+  flex-shrink: 0; flex-wrap: wrap;
+}
+.role-avatar-row {
+  display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;
+}
+.role-chip {
+  display: flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 12px; background: #f0f0f0;
+  font-size: 10px; color: #666; white-space: nowrap;
+  transition: all 0.3s;
+}
+.role-chip.speaking {
+  background: #fdf8f3; color: #b8976e; font-weight: 700;
+  animation: role-pulse 0.8s ease-in-out infinite;
+  box-shadow: 0 0 0 2px rgba(184,151,110,0.3);
+}
+@keyframes role-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(184,151,110,0.3); }
+  50% { box-shadow: 0 0 0 4px rgba(184,151,110,0.15); }
+}
+.role-chip .role-emoji { font-size: 14px; }
+.role-chip .role-divider { color: #ccc; margin: 0 2px; }
+.role-consulting-hint {
+  margin: 4px 10px; padding: 4px 10px; background: #f5f5f5;
+  border-radius: 8px; font-size: 9px; color: #999; text-align: center;
+}
+
+/* ===== Reasoning Panel ===== */
+.reasoning-panel {
+  background: #fdf8f3; border-top: 2px solid #b8976e;
+  padding: 8px 12px; flex-shrink: 0; display: none;
+  max-height: 140px; overflow-y: auto;
+}
+.reasoning-panel.show { display: block; }
+.reasoning-header {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; font-weight: 700; color: #b8976e; margin-bottom: 6px;
+}
+.reasoning-close-btn {
+  background: none; border: none; font-size: 14px; color: #999;
+  cursor: pointer; padding: 0 4px;
+}
+.reasoning-content { font-size: 10px; color: #666; line-height: 1.6; }
+.reasoning-suggestion {
+  margin-top: 6px; padding: 6px 8px; background: #fff;
+  border-radius: 6px; font-size: 10px; color: #3d4f6b;
+  border-left: 3px solid #b8976e;
+}
+
+/* Login container hides phone-screen main content */
+.phone-screen.logged-out .screen,
+.phone-screen.logged-out .tab-bar,
+.phone-screen.logged-out .app-header { display: none; }
+.phone-screen.logged-out .login-container { display: flex; }
+
+/* ===== Onboarding Overlay ===== */
+.onboarding-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.65);
+  z-index: 300; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+.onboarding-overlay.hidden { display: none; }
+.onboard-card {
+  background: #fff; border-radius: 14px; padding: 24px 20px;
+  width: 280px; text-align: center; position: relative;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+.onboard-skip {
+  position: absolute; top: 10px; right: 14px;
+  font-size: 11px; color: #aaa; cursor: pointer;
+  background: none; border: none; font-family: inherit;
+}
+.onboard-skip:hover { color: #666; }
+.onboard-step-title {
+  font-size: 16px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px;
+}
+.onboard-step-desc {
+  font-size: 12px; color: #666; line-height: 1.6; margin-bottom: 20px;
+}
+.onboard-step-desc p { margin-bottom: 4px; }
+.onboard-btn-row { display: flex; justify-content: flex-end; }
+.onboard-btn {
+  background: #b8976e; color: #fff; border: none;
+  padding: 8px 20px; border-radius: 8px; font-size: 13px;
+  font-weight: 600; cursor: pointer; font-family: inherit;
+  transition: background 0.2s;
+}
+.onboard-btn:hover { background: #a07d53; }
+.onboard-btn.start-btn { width: 100%; justify-content: center; display: flex; }
+
+/* Onboard Step 2 icons */
+.onboard-icons-row {
+  display: flex; justify-content: center; gap: 20px; margin: 16px 0;
+}
+.onboard-icon-item {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-size: 10px; color: #666;
+}
+.onboard-icon-circle {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+.oi-step1 { background: #e8f0fe; }
+.oi-step2 { background: #fef3e7; }
+.oi-step3 { background: #e6f7e6; }
+
+/* Onboard Step 3 radar thumb */
+.onboard-radar-thumb {
+  margin: 10px auto; width: 70px; height: 70px;
+}
+
+/* ===== Collapsible Panel ===== */
+.collapse-panel {
+  margin: 8px 12px; border-radius: 10px; overflow: hidden;
+  background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.collapse-header {
+  padding: 12px 14px; cursor: pointer; display: flex;
+  align-items: center; justify-content: space-between;
+  font-size: 13px; font-weight: 600; color: #1a1a2e;
+  user-select: none; border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+.collapse-header:hover { background: #fdf8f3; }
+.collapse-arrow {
+  font-size: 10px; color: #999; transition: transform 0.3s;
+}
+.collapse-panel.open .collapse-arrow { transform: rotate(180deg); }
+.collapse-panel.open .collapse-header { border-bottom-color: #eee; }
+.collapse-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+.collapse-panel.open .collapse-body { max-height: 600px; }
+
+/* Voice sub-dimensions */
+.voice-sub-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 14px; font-size: 11px;
+}
+.voice-sub-label { width: 72px; flex-shrink: 0; color: #333; }
+.voice-sub-bar-wrap { flex: 1; height: 6px; background: #e8e4df; border-radius: 3px; overflow: hidden; }
+.voice-sub-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+.voice-sub-score { width: 32px; text-align: right; font-weight: 600; font-size: 10px; color: #3d4f6b; }
+.voice-sub-comment { width: 80px; text-align: right; font-size: 9px; color: #999; flex-shrink: 0; }
+.voice-panel-hint {
+  padding: 6px 14px 10px; font-size: 9px; color: #999;
+  border-top: 1px solid #f5f5f5; margin-top: 4px;
+}
+
+/* Growth chart */
+.growth-chart-wrap { padding: 12px 14px 16px; display: flex; justify-content: center; }
+.growth-summary {
+  padding: 0 14px 12px; font-size: 11px; color: #333; text-align: center;
+}
+.growth-placeholder {
+  padding: 20px 14px; text-align: center; font-size: 11px; color: #aaa;
+}
+
+/* Voice mode mic icon near score */
+.score-mic-icon {
+  font-size: 16px; margin-left: 4px; vertical-align: middle;
+}
+</style>
+</head>
+<body>
+<div class="phone-shell">
+  <!-- Side buttons -->
+  <div class="phone-side-btn volume-up"></div>
+  <div class="phone-side-btn volume-down"></div>
+  <div class="phone-side-btn power"></div>
+<div class="phone-screen logged-out" id="phoneScreen">
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ===== Onboarding Overlay ===== -->
+  <div class="onboarding-overlay hidden" id="onboardingOverlay">
+    <!-- Step 1 -->
+    <div class="onboard-card" id="onboardStep1">
+      <button class="onboard-skip" onclick="closeOnboarding()">跳过</button>
+      <div class="onboard-step-title">欢迎加入 AI Studio Training！</div>
+      <div class="onboard-step-desc">
+        <p>在这里你将与AI顾客进行逼真的销售实战训练，</p>
+        <p>随时随地提升你的销售技能。</p>
+      </div>
+      <div class="onboard-btn-row">
+        <button class="onboard-btn" onclick="nextOnboardStep(2)">下一步 →</button>
+      </div>
+    </div>
+    <!-- Step 2 -->
+    <div class="onboard-card" id="onboardStep2" style="display:none;">
+      <button class="onboard-skip" onclick="closeOnboarding()">跳过</button>
+      <div class="onboard-step-title">3步开始训练</div>
+      <div class="onboard-icons-row">
+        <div class="onboard-icon-item">
+          <div class="onboard-icon-circle oi-step1">📱</div>
+          <span>选择场景</span>
+        </div>
+        <div class="onboard-icon-item">
+          <div class="onboard-icon-circle oi-step2">📊</div>
+          <span>选择难度</span>
+        </div>
+        <div class="onboard-icon-item">
+          <div class="onboard-icon-circle oi-step3">🎯</div>
+          <span>开始陪练</span>
+        </div>
+      </div>
+      <button class="onboard-btn start-btn" onclick="nextOnboardStep(3)">开始</button>
+    </div>
+    <!-- Step 3 -->
+    <div class="onboard-card" id="onboardStep3" style="display:none;">
+      <button class="onboard-skip" onclick="closeOnboarding()">跳过</button>
+      <div class="onboard-step-title">每次陪练后会收到详细评估报告</div>
+      <div class="onboard-radar-thumb">
+        <svg width="70" height="70" viewBox="0 0 70 70">
+          <polygon points="35,5 59,22 54,52 16,52 11,22" fill="none" stroke="#e8e4df" stroke-width="1"/>
+          <polygon points="35,14 54,27 50,47 20,47 16,27" fill="none" stroke="#e8e4df" stroke-width="1"/>
+          <polygon points="35,23 49,32 46,41 24,41 21,32" fill="none" stroke="#e8e4df" stroke-width="1"/>
+          <polygon points="35,18 50,27 47,42 23,44 18,30"
+                   fill="rgba(184,151,110,0.25)" stroke="#b8976e" stroke-width="1.5"/>
+          <circle cx="35" cy="18" r="2" fill="#b8976e"/>
+          <circle cx="50" cy="27" r="2" fill="#b8976e"/>
+          <circle cx="47" cy="42" r="2" fill="#b8976e"/>
+          <circle cx="23" cy="44" r="2" fill="#b8976e"/>
+          <circle cx="18" cy="30" r="2" fill="#b8976e"/>
+        </svg>
+      </div>
+      <div class="onboard-step-desc" style="font-size:11px;color:#999;">5维能力雷达图 · 16项粒度评分 · AI评语</div>
+      <button class="onboard-btn start-btn" onclick="closeOnboardingAndStart()">🚀 开始训练</button>
+    </div>
+  </div>
+
+  <!-- ===== Login Container ===== -->
+  <div class="login-container" id="loginContainer">
+    <div class="login-logo">AI Studio Training</div>
+    <div class="login-subtitle">随时随地，实战练兵</div>
+    <div class="login-form">
+      <input type="text" class="login-input" id="login-account" placeholder="手机号 / 工号">
+      <div class="login-code-row">
+        <input type="text" class="login-input" id="login-code" placeholder="验证码">
+        <button class="login-code-btn" id="codeBtn" onclick="getVerifyCode()">获取验证码</button>
+      </div>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">登录</button>
+    </div>
+    <div class="login-divider">或</div>
+    <div class="sso-buttons">
+      <button class="sso-btn" onclick="ssoLogin('wecom')" title="企业微信">💬</button>
+      <button class="sso-btn" onclick="ssoLogin('feishu')" title="飞书">🐦</button>
+      <button class="sso-btn" onclick="ssoLogin('dingtalk')" title="钉钉">📌</button>
+    </div>
+    <div class="login-footer" onclick="showOnboarding()">首次使用？查看新手指南 →</div>
+    <div class="login-loading" id="loginLoading" style="display:none;">
+      <div class="login-spinner"></div>正在登录…
+    </div>
+  </div>
+
+  <!-- ===== Logout Confirm Overlay ===== -->
+  <div class="modal-overlay hidden" id="logoutOverlay" style="display:none;">
+    <div class="modal-box">
+      <h4>退出登录</h4>
+      <p>退出后需要重新登录，确认退出吗？</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline btn-sm" onclick="cancelLogout()">取消</button>
+        <button class="btn btn-primary btn-sm" onclick="confirmLogout()">确认退出</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Island -->
+  <div class="dynamic-island">
+    <span class="di-camera"></span>
+    <span class="di-time">9:41</span>
+    <span class="di-battery">▮▮▮▮</span>
+  </div>
+
+  <!-- App Header -->
+  <div class="app-header">AI Studio Training</div>
+
+  <!-- ==================== S01: 工作台 ==================== -->
+  <div class="screen active" id="screen-s01">
+    <div class="content-area" style="flex:1; overflow-y:auto;">
+      <div class="greeting-row">
+        <div>
+          <div class="greeting-text">下午好，张小明！</div>
+          <div class="greeting-sub">今天也是精进的一天</div>
+        </div>
+        <div class="avatar-circle">张</div>
+      </div>
+
+      <!-- 进度卡片 -->
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:13px;">📋</span>
+          <span style="font-size:12px;font-weight:600;">新人30天计划</span>
+          <span style="font-size:10px;color:#999;margin-left:auto;">Day 3 / 30</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:10%;"></div></div>
+        <div style="font-size:10px;color:#999;margin-top:2px;">10%</div>
+      </div>
+
+      <!-- 继续陪练 + 待办 -->
+      <div style="display:flex;gap:8px;padding:0 12px;">
+        <div class="card" style="flex:1;padding:12px;">
+          <div style="font-size:11px;color:#999;margin-bottom:4px;">🔄 继续上次陪练</div>
+          <div style="font-size:12px;font-weight:600;">连锁零售-手机销售</div>
+          <div style="font-size:10px;color:#b8976e;margin:4px 0;">L2 犹豫型 · 破冰→挖需求→…</div>
+          <button class="btn btn-primary btn-sm" style="margin-top:6px;">继续</button>
+        </div>
+        <div class="card" style="flex:1;padding:12px;">
+          <div style="font-size:11px;color:#999;margin-bottom:4px;">📌 待完成任务</div>
+          <div style="font-size:10px;line-height:1.6;">
+            <div>◆ 破冰训练 <span class="tag tag-orange">今</span></div>
+            <div>◆ 需求挖掘 <span class="tag tag-yellow">明</span></div>
+            <div>◆ 异议处理 <span style="color:#999;">7/5</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 雷达图 + 趋势 -->
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="chart-container">
+            <svg width="140" height="140" viewBox="0 0 140 140">
+              <!-- Pentagon grid -->
+              <polygon points="70,16 121,53 102,106 38,106 19,53" fill="none" stroke="#e8e4df" stroke-width="1"/>
+              <polygon points="70,30 114,61 97,99 43,99 26,61" fill="none" stroke="#e8e4df" stroke-width="1"/>
+              <polygon points="70,44 107,68 91,91 49,91 33,68" fill="none" stroke="#e8e4df" stroke-width="1"/>
+              <!-- Data polygon -->
+              <polygon points="70,38 100,58 93,86 50,92 35,64"
+                       fill="rgba(184,151,110,0.2)" stroke="#b8976e" stroke-width="1.5"/>
+              <!-- Dots -->
+              <circle cx="70" cy="38" r="3" fill="#b8976e"/>
+              <circle cx="100" cy="58" r="3" fill="#b8976e"/>
+              <circle cx="93" cy="86" r="3" fill="#b8976e"/>
+              <circle cx="50" cy="92" r="3" fill="#b8976e"/>
+              <circle cx="35" cy="64" r="3" fill="#b8976e"/>
+              <!-- Labels -->
+              <text x="70" y="14" text-anchor="middle" font-size="8" fill="#666">沟通表达</text>
+              <text x="125" y="56" text-anchor="start" font-size="8" fill="#666">需求挖掘</text>
+              <text x="105" y="112" text-anchor="start" font-size="8" fill="#666">产品介绍</text>
+              <text x="35" y="112" text-anchor="end" font-size="8" fill="#666">异议处理</text>
+              <text x="15" y="56" text-anchor="end" font-size="8" fill="#666">成交推进</text>
+            </svg>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:10px;color:#999;margin-bottom:4px;">📊 最近得分趋势</div>
+            <svg width="120" height="60" viewBox="0 0 120 60">
+              <polyline points="10,40 55,28 100,18" fill="none" stroke="#b8976e" stroke-width="2"/>
+              <circle cx="10" cy="40" r="3" fill="#b8976e"/>
+              <circle cx="55" cy="28" r="3" fill="#b8976e"/>
+              <circle cx="100" cy="18" r="3" fill="#b8976e"/>
+              <text x="10" y="55" text-anchor="middle" font-size="7" fill="#999">第1次</text>
+              <text x="55" y="55" text-anchor="middle" font-size="7" fill="#999">第2次</text>
+              <text x="100" y="55" text-anchor="middle" font-size="7" fill="#999">第3次</text>
+              <text x="8" y="42" font-size="7" fill="#666">62</text>
+              <text x="48" y="24" font-size="7" fill="#666">68</text>
+              <text x="93" y="14" font-size="7" fill="#b8976e" font-weight="bold">72</text>
+            </svg>
+            <div style="font-size:9px;color:#b8976e;margin-top:2px;">均分 68 → 上升趋势</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 开始新陪练 -->
+      <div style="padding:8px 12px 16px;">
+        <button class="btn btn-primary btn-block" onclick="switchScreen('s02')" style="padding:12px;">🚀 开始新陪练</button>
+        <div style="text-align:center;margin-top:8px;display:flex;justify-content:center;gap:16px;">
+          <span style="font-size:10px;color:#b8976e;cursor:pointer;" onclick="showOnboarding()">📖 新手指南</span>
+          <span style="font-size:10px;color:#999;cursor:pointer;" onclick="doLogout()">退出登录</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== S02: 新建陪练 ==================== -->
+  <div class="screen" id="screen-s02">
+    <div class="content-area" style="flex:1;overflow-y:auto;" id="s02-content">
+      <!-- Step indicator -->
+      <div class="step-indicator" id="s02-steps">
+        <span class="step active" id="step1-dot">1</span><span class="step-line" id="line1"></span>
+        <span class="step" id="step2-dot">2</span><span class="step-line" id="line2"></span>
+        <span class="step" id="step3-dot">3</span>
+      </div>
+      <div style="text-align:center;font-size:10px;color:#999;margin-bottom:6px;" id="s02-step-label">① 选择场景</div>
+
+      <!-- Step 1 content -->
+      <div id="s02-step1">
+        <div class="industry-tabs">
+          <button class="industry-tab active" onclick="selectIndustry(this,'连锁零售')">连锁零售</button>
+          <button class="industry-tab" onclick="selectIndustry(this,'金融保险')">金融保险</button>
+          <button class="industry-tab" onclick="selectIndustry(this,'B2B SaaS')">B2B SaaS</button>
+          <button class="industry-tab" onclick="selectIndustry(this,'房产中介')">房产中介</button>
+          <button class="industry-tab" onclick="selectIndustry(this,'汽车4S')">汽车4S</button>
+        </div>
+        <div class="scene-grid">
+          <div class="scene-card selected" onclick="selectScene(this)" data-scene="手机销售">
+            <div class="scene-icon">📱</div>
+            <div class="scene-name">手机销售</div>
+            <div class="scene-meta">👤 1角色 · ⏱ 15min</div>
+            <span class="tag tag-green" style="margin-top:4px;">推荐</span>
+          </div>
+          <div class="scene-card" onclick="selectScene(this)" data-scene="笔记本销售">
+            <div class="scene-icon">💻</div>
+            <div class="scene-name">笔记本销售</div>
+            <div class="scene-meta">👥 2角色 · ⏱ 20min</div>
+          </div>
+          <div class="scene-card" onclick="selectScene(this)" data-scene="家电销售">
+            <div class="scene-icon">🏠</div>
+            <div class="scene-name">家电销售</div>
+            <div class="scene-meta">👤 1角色 · ⏱ 15min</div>
+          </div>
+          <div class="scene-card" onclick="selectScene(this)" data-scene="保险推介">
+            <div class="scene-icon">👔</div>
+            <div class="scene-name">保险推介</div>
+            <div class="scene-meta">👤 1角色 · ⏱ 15min</div>
+          </div>
+          <div class="scene-card" onclick="selectScene(this)" data-scene="餐饮加盟">
+            <div class="scene-icon">🍲</div>
+            <div class="scene-name">餐饮加盟</div>
+            <div class="scene-meta">👥 2角色 · ⏱ 20min</div>
+          </div>
+          <div class="scene-card" onclick="selectScene(this)" data-scene="物流方案">
+            <div class="scene-icon">📦</div>
+            <div class="scene-name">物流方案</div>
+            <div class="scene-meta">👥 3角色 · ⏱ 25min</div>
+          </div>
+        </div>
+        <div style="padding:8px 12px;">
+          <button class="btn btn-primary btn-block" onclick="goStep2()">下一步：选择难度</button>
+        </div>
+      </div>
+
+      <!-- Step 2 content -->
+      <div id="s02-step2" style="display:none;">
+        <div class="diff-cards">
+          <div class="diff-card" onclick="selectDiff(this,'L1')">
+            <div class="diff-tag-col"><span class="tag tag-green" style="font-size:12px;padding:4px 10px;">L1</span></div>
+            <div class="diff-body">
+              <div class="diff-level">🟢 L1 友好型</div>
+              <div class="diff-feature">角色特征：性格开朗、容易被说服、会问基本问题</div>
+              <div class="diff-focus">训练重点：基本流程走通</div>
+            </div>
+          </div>
+          <div class="diff-card selected" onclick="selectDiff(this,'L2')">
+            <div class="diff-tag-col"><span class="tag tag-yellow" style="font-size:12px;padding:4px 10px;">L2</span></div>
+            <div class="diff-body">
+              <div class="diff-level">🟡 L2 犹豫型</div>
+              <div class="diff-feature">角色特征：反复对比、要求更多信息、迟迟不决</div>
+              <div class="diff-focus">训练重点：需求挖掘+价值传递</div>
+            </div>
+          </div>
+          <div class="diff-card" onclick="selectDiff(this,'L3')">
+            <div class="diff-tag-col"><span class="tag tag-orange" style="font-size:12px;padding:4px 10px;">L3</span></div>
+            <div class="diff-body">
+              <div class="diff-level">🟠 L3 刁钻型</div>
+              <div class="diff-feature">角色特征：价格敏感、质疑产品、提出竞品对比</div>
+              <div class="diff-focus">训练重点：异议处理+竞品应对</div>
+            </div>
+          </div>
+          <div class="diff-card" onclick="selectDiff(this,'L4')">
+            <div class="diff-tag-col"><span class="tag tag-red" style="font-size:12px;padding:4px 10px;">L4</span></div>
+            <div class="diff-body">
+              <div class="diff-level">🔴 L4 多人决策</div>
+              <div class="diff-feature">角色特征：夫妻/朋友/同事同时在线，互相商量（3+角色）</div>
+              <div class="diff-focus">训练重点：复杂决策+多方协调</div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:8px 12px;display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="goStep1()" style="flex:1;">上一步</button>
+          <button class="btn btn-primary" onclick="goStep3()" style="flex:1;">下一步：选择模式</button>
+        </div>
+      </div>
+
+      <!-- Step 3 content -->
+      <div id="s02-step3" style="display:none;">
+        <div style="padding:0 12px;display:flex;flex-direction:column;gap:10px;">
+          <div class="card" id="mode-text-card" style="border:2px solid #b8976e;cursor:pointer;" onclick="selectMode('text')">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:28px;">💬</span>
+              <div>
+                <div style="font-size:13px;font-weight:600;">文字陪练</div>
+                <div style="font-size:10px;color:#666;">通过文字对话框与AI顾客实时对话，适合精读话术、反复推敲。</div>
+              </div>
+            </div>
+            <div style="text-align:right;margin-top:4px;"><span style="color:#b8976e;font-size:10px;">● 已选择</span></div>
+          </div>
+          <div class="card" id="mode-voice-card" style="cursor:pointer;" onclick="selectMode('voice')">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:28px;">🎤</span>
+              <div>
+                <div style="font-size:13px;font-weight:600;">语音陪练</div>
+                <div style="font-size:10px;color:#666;">WebRTC实时语音通话，支持PTT/VAD两种交互模式。适合电销、保险等语音场景。</div>
+              </div>
+            </div>
+            <div style="text-align:right;margin-top:4px;"><span style="color:#999;font-size:10px;">○ 未选择</span></div>
+          </div>
+          <!-- Voice sub-options -->
+          <div class="card" id="voice-sub-options" style="display:none;">
+            <div style="font-size:12px;font-weight:600;margin-bottom:8px;">语音模式详情</div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-primary btn-sm" id="ptt-btn" onclick="selectVoiceSub('ptt')" style="flex:1;">● PTT 按住说话</button>
+              <button class="btn btn-outline btn-sm" id="vad-btn" onclick="selectVoiceSub('vad')" style="flex:1;">○ VAD 自动检测</button>
+            </div>
+            <div style="font-size:9px;color:#999;margin-top:6px;" id="voice-sub-desc">PTT：按住说话 — 适合嘈杂环境</div>
+          </div>
+        </div>
+        <div style="padding:8px 12px;display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="goStep2()" style="flex:1;">上一步</button>
+          <button class="btn btn-primary" onclick="startPractice()" style="flex:1;">🚀 开始陪练</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== S03: 文字陪练对话 ==================== -->
+  <div class="screen" id="screen-s03-text">
+    <!-- Top bar -->
+    <div style="background:#fff;padding:8px 12px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:12px;font-weight:600;">🏪 连锁零售-手机销售</span>
+        <span class="tag tag-yellow">L2 犹豫型</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="showMenu()" style="font-size:16px;padding:4px 8px;">···</button>
+    </div>
+    <!-- Multi-role indicator (hidden by default) -->
+    <div class="multi-role-bar" id="multiRoleBar" style="display:none;">
+      <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#666;overflow-x:auto;">
+        <span class="role-chip" data-role="王叔叔">👨 王叔叔 <span class="role-tag">决策者</span></span>
+        <span class="role-divider">|</span>
+        <span class="role-chip" data-role="李阿姨">👩 李阿姨 <span class="role-tag">影响者</span></span>
+        <span class="role-divider">|</span>
+        <span class="role-chip" data-role="小张">👦 小张 <span class="role-tag">使用者</span></span>
+      </div>
+    </div>
+    <!-- AI Customer info (hidden in multi-role mode) -->
+    <div id="singleRoleInfo" style="background:#fff;padding:4px 12px 6px;font-size:10px;color:#666;border-bottom:1px solid #eee;flex-shrink:0;">
+      👤 顾客：王阿姨（45岁，家庭主妇）
+    </div>
+    <!-- Todo steps -->
+    <div class="todo-steps" style="flex-shrink:0;">
+      <span class="todo-step done">✅ 破冰</span>
+      <span class="todo-step done">✅ 需求挖掘</span>
+      <span class="todo-step current">🟠 产品介绍</span>
+      <span class="todo-step">⬜ 异议处理</span>
+      <span class="todo-step">⬜ 逼单</span>
+      <span class="todo-step">⬜ 评估</span>
+    </div>
+    <!-- Chat area -->
+    <div class="content-area" style="flex:1;overflow-y:auto;" id="chat-area">
+      <div style="padding:6px 10px;text-align:center;font-size:9px;color:#999;">陪练开始 · 2026-07-01 10:00</div>
+
+      <div class="chat-msg ai" style="margin:8px 10px;">
+        <div class="chat-avatar">👤</div>
+        <div>
+          <div class="chat-bubble ai">我想给我儿子买个手机，但是…我也不知道哪个好，你们这能推荐吗？</div>
+          <div class="chat-time">09:32</div>
+        </div>
+      </div>
+
+      <div class="chat-msg user" style="margin:8px 10px;">
+        <div class="chat-avatar" style="background:#3d4f6b;color:#fff;">张</div>
+        <div>
+          <div class="chat-bubble user">您好王阿姨！请问您儿子主要用手机来做些什么呢？</div>
+          <div class="chat-time">09:33</div>
+        </div>
+      </div>
+
+      <div class="chat-msg ai" style="margin:8px 10px;">
+        <div class="chat-avatar">👤</div>
+        <div>
+          <div class="chat-bubble ai">他就是打游戏、刷视频吧…我也不太懂。你们这有什么性价比高的？</div>
+          <div class="chat-trigger-tag"><span class="tag tag-orange" style="font-size:9px;">💰 价格敏感</span></div>
+          <div class="chat-time">09:34</div>
+        </div>
+      </div>
+
+      <div class="chat-msg user" style="margin:8px 10px;">
+        <div class="chat-avatar" style="background:#3d4f6b;color:#fff;">张</div>
+        <div>
+          <div class="chat-bubble user">打游戏和刷视频的话，我推荐我们这款主打性能的机型，处理器很强，屏幕也大，玩游戏流畅。而且最近正好有活动…</div>
+          <div class="chat-time">09:35</div>
+        </div>
+      </div>
+
+      <div class="chat-msg ai" style="margin:8px 10px;">
+        <div class="chat-avatar">👤</div>
+        <div>
+          <div class="chat-bubble ai">那价格呢？我预算有限，你别给我推荐太贵的，要是跟网上比贵了我可不要。</div>
+          <div class="chat-trigger-tag"><span class="tag tag-orange" style="font-size:9px;">💰 价格敏感</span></div>
+          <div class="chat-time">09:36</div>
+        </div>
+      </div>
+
+      <!-- Difficulty hint -->
+      <div style="margin:8px 10px;padding:6px 10px;background:#fdf8f3;border-radius:8px;font-size:10px;color:#b8976e;text-align:center;">
+        💡 难度提示：L2犹豫型顾客倾向反复对比，请主动挖掘核心需求
+      </div>
+
+      <div class="chat-msg user" style="margin:8px 10px;">
+        <div class="chat-avatar" style="background:#3d4f6b;color:#fff;">张</div>
+        <div>
+          <div class="chat-bubble user">理解您的顾虑，王阿姨。我们这款性价比很高，和网上同价而且送一年延保。您儿子玩游戏多的话这款完全够用…</div>
+          <div class="chat-time">09:37</div>
+        </div>
+      </div>
+    </div>
+    <!-- Reasoning Panel (hidden by default) -->
+    <div class="reasoning-panel" id="reasoningPanel" style="display:none;">
+      <div class="reasoning-header">
+        <span>💭 AI推理面板</span>
+        <button class="reasoning-close-btn" onclick="toggleReasoningPanel()">✕ 关闭</button>
+      </div>
+      <div class="reasoning-content">
+        顾客正在犹豫价格，同时受到同伴影响。检测到2个关键触发词：💰价格敏感、👥多人决策倾向
+      </div>
+      <div class="reasoning-suggestion">
+        建议下一步：先做价值锚定，引用用户证言，再用限时优惠收窄决策窗口
+      </div>
+    </div>
+    <!-- Input bar -->
+    <div class="input-bar" style="flex-shrink:0;">
+      <input type="text" placeholder="输入您的销售话术…" id="chat-input" oninput="updateSendBtn()">
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">↑</button>
+      <button class="btn btn-outline btn-sm" onclick="endPractice()">🏁 结束</button>
+    </div>
+  </div>
+
+  <!-- ==================== S03: 语音陪练 ==================== -->
+  <div class="screen" id="screen-s03-voice">
+    <!-- Call bar -->
+    <div class="voice-call-bar" style="flex-shrink:0;">
+      <span>🎤 通话中 · 00:05:23</span>
+      <span style="font-size:9px;">🟢 网络良好</span>
+    </div>
+    <!-- AI Customer info -->
+    <div style="background:#fff;padding:4px 12px 6px;font-size:11px;font-weight:600;border-bottom:1px solid #eee;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
+      <span>🏪 连锁零售-手机销售 | L2 | 👤 王阿姨</span>
+      <span class="tag tag-yellow">L2</span>
+    </div>
+    <!-- Voice content -->
+    <div class="content-area" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+      <!-- AI speaking indicator -->
+      <div class="ai-speaking-indicator" id="ai-speaking">
+        <div class="wave-bars">
+          <div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+        </div>
+        <span>对方正在说话…</span>
+      </div>
+      <!-- Transcript -->
+      <div style="background:#fff;border-radius:10px;padding:12px;margin:0 20px;width:calc(100%-40px);text-align:center;font-size:11px;color:#666;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+        "我想给我儿子买个手机，但是…我也不知道哪个好，你们这能推荐吗？"
+      </div>
+      <!-- Mic button -->
+      <button class="voice-mic-btn" onclick="simulateVoiceInput()">🎤</button>
+      <div style="font-size:10px;color:#999;">按住说话 (PTT)</div>
+
+      <!-- Controls -->
+      <div style="display:flex;gap:16px;">
+        <button class="btn btn-outline btn-sm" onclick="togglePTTVAD()" id="ptt-vad-toggle">PTT</button>
+        <button class="btn btn-outline btn-sm" onclick="showToast('已静音')">🔇 静音</button>
+      </div>
+
+      <!-- Simulate ASR failure -->
+      <button class="btn btn-ghost btn-sm" style="color:#cf1322;font-size:10px;" onclick="simulateASRFailure()">模拟ASR失败</button>
+
+      <!-- Fallback text input (hidden by default) -->
+      <div id="voice-fallback-input" style="display:none;width:100%;padding:0 20px;">
+        <div style="display:flex;gap:8px;">
+          <input type="text" placeholder="语音识别失败，请手动输入…" style="flex:1;border:1.5px solid #e0dcd5;border-radius:18px;padding:8px 14px;font-size:12px;font-family:inherit;">
+          <button class="btn btn-primary btn-sm">发送</button>
+        </div>
+      </div>
+    </div>
+    <!-- Bottom: hang up -->
+    <div style="text-align:center;padding:10px;background:#fff;border-top:1px solid #eee;flex-shrink:0;">
+      <button class="btn" style="background:#cf1322;color:#fff;border-radius:50%;width:48px;height:48px;font-size:20px;padding:0;" onclick="hangUpVoice()">📞</button>
+    </div>
+  </div>
+
+  <!-- ==================== S04: 评估报告 ==================== -->
+  <div class="screen" id="screen-s04">
+    <div class="content-area" style="flex:1;overflow-y:auto;">
+      <div style="padding:12px;text-align:center;">
+        <div style="font-size:13px;font-weight:600;">📊 陪练评估报告</div>
+        <div style="font-size:9px;color:#999;">连锁零售-手机销售 | L2 犹豫型 | 2026-07-01 10:15</div>
+      </div>
+
+      <!-- Score circle -->
+      <div style="padding:12px;text-align:center;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;">
+          <div class="score-circle">
+            <div class="score-inner">
+              <span class="score-num">78</span>
+              <span class="score-max">/ 100</span>
+            </div>
+          </div>
+          <div>
+            <span class="score-badge pass" style="font-size:12px;padding:4px 12px;">🟡 合格</span>
+            <div style="font-size:10px;color:#389e0d;margin-top:4px;">↑ 较上次 +5</div>
+          </div>
+          <span class="score-mic-icon" id="scoreMicIcon" style="display:none;" title="本次为语音陪练模式">🎤</span>
+        </div>
+      </div>
+
+      <!-- Radar Chart -->
+      <div class="card">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px;">🎯 5维能力雷达图</div>
+        <div class="chart-container">
+          <svg width="220" height="200" viewBox="0 0 220 200">
+            <polygon points="110,18 176,64 162,122 58,122 44,64" fill="none" stroke="#e8e4df" stroke-width="1"/>
+            <polygon points="110,42 163,76 151,112 69,112 57,76" fill="none" stroke="#e8e4df" stroke-width="1"/>
+            <polygon points="110,66 149,88 140,101 80,101 71,88" fill="none" stroke="#e8e4df" stroke-width="1"/>
+            <!-- Data -->
+            <polygon points="110,50 152,77 143,105 76,109 62,80"
+                     fill="rgba(184,151,110,0.25)" stroke="#b8976e" stroke-width="2"/>
+            <circle cx="110" cy="50" r="4" fill="#b8976e"/>
+            <circle cx="152" cy="77" r="4" fill="#b8976e"/>
+            <circle cx="143" cy="105" r="4" fill="#b8976e"/>
+            <circle cx="76" cy="109" r="4" fill="#b8976e"/>
+            <circle cx="62" cy="80" r="4" fill="#b8976e"/>
+            <!-- Labels + scores -->
+            <text x="110" y="16" text-anchor="middle" font-size="9" fill="#666">沟通表达(75)</text>
+            <text x="186" y="68" text-anchor="start" font-size="9" fill="#666">需求挖掘(82)</text>
+            <text x="168" y="132" text-anchor="start" font-size="9" fill="#666">产品介绍(80)</text>
+            <text x="52" y="132" text-anchor="end" font-size="9" fill="#666">异议处理(72)</text>
+            <text x="34" y="68" text-anchor="end" font-size="9" fill="#666">成交推进(65)</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 16-item score table -->
+      <div class="card">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px;">📊 16项粒度评分明细</div>
+        <div style="font-size:10px;line-height:2;" id="score-table">
+        </div>
+      </div>
+
+      <!-- AI Comments -->
+      <div class="card">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px;">📝 AI综合评语</div>
+        <div style="font-size:11px;margin-bottom:8px;">
+          <div style="color:#389e0d;font-weight:600;margin-bottom:4px;">👍 优点（3条）</div>
+          <div style="margin-bottom:2px;">1. 开场破冰自然，成功建立信任关系（8/10）</div>
+          <div style="margin-bottom:2px;">2. 产品卖点匹配精准，FABE转化结构清晰（7/10）</div>
+          <div>3. 收尾阶段下一步引导到位，留下跟进空间（8/10）</div>
+        </div>
+        <div style="font-size:11px;">
+          <div style="color:#d46b08;font-weight:600;margin-bottom:4px;">💡 改进建议（3条）</div>
+          <div style="margin-bottom:2px;">1.【需求挖掘】BAT探测能力不足，建议练习SPIN提问法</div>
+          <div style="margin-bottom:2px;">2.【异议处理】价格谈判中过早让步，建议练习"认同→转化→对比"三步法</div>
+          <div style="margin-bottom:2px;">3.【成交推进】紧迫感制造较弱（5/10），建议使用限时/限量话术</div>
+        </div>
+        <div style="font-size:11px;margin-top:8px;padding-top:8px;border-top:1px solid #eee;">
+          <div style="color:#3d4f6b;font-weight:600;margin-bottom:4px;">🎯 推荐练习场景</div>
+          <div style="color:#b8976e;">→ L3刁钻型-连锁零售-手机销售（重点攻克价格谈判）</div>
+          <div style="color:#b8976e;">→ L2犹豫型-金融保险-重疾险推介（强化BAT探测）</div>
+        </div>
+      </div>
+
+      <!-- Voice Assessment Panel -->
+      <div class="collapse-panel" id="voicePanel">
+        <div class="collapse-header" onclick="toggleVoicePanel()">
+          <span>🎤 语音表现</span>
+          <span class="collapse-arrow">▼</span>
+        </div>
+        <div class="collapse-body">
+          <div class="voice-sub-row">
+            <span class="voice-sub-label">语速适应</span>
+            <div class="voice-sub-bar-wrap"><div class="voice-sub-bar-fill" style="width:80%;background:#27ae60;"></div></div>
+            <span class="voice-sub-score">8/10</span>
+            <span class="voice-sub-comment">语速适中</span>
+          </div>
+          <div class="voice-sub-row">
+            <span class="voice-sub-label">停顿自然度</span>
+            <div class="voice-sub-bar-wrap"><div class="voice-sub-bar-fill" style="width:70%;background:#b8976e;"></div></div>
+            <span class="voice-sub-score">7/10</span>
+            <span class="voice-sub-comment">偶有卡顿</span>
+          </div>
+          <div class="voice-sub-row">
+            <span class="voice-sub-label">语调亲和力</span>
+            <div class="voice-sub-bar-wrap"><div class="voice-sub-bar-fill" style="width:60%;background:#e67e22;"></div></div>
+            <span class="voice-sub-score">6/10</span>
+            <span class="voice-sub-comment">可更热情</span>
+          </div>
+          <div class="voice-sub-row">
+            <span class="voice-sub-label">语音清晰度</span>
+            <div class="voice-sub-bar-wrap"><div class="voice-sub-bar-fill" style="width:90%;background:#3d4f6b;"></div></div>
+            <span class="voice-sub-score">9/10</span>
+            <span class="voice-sub-comment">吐字清晰</span>
+          </div>
+          <div class="voice-panel-hint">语音评分作为沟通表达(75)的子维度，不计入总分</div>
+        </div>
+      </div>
+
+      <!-- Growth Curve Panel -->
+      <div class="collapse-panel" id="growthPanel">
+        <div class="collapse-header" onclick="toggleGrowthPanel()">
+          <span>📈 成长对比</span>
+          <span class="collapse-arrow">▼</span>
+        </div>
+        <div class="collapse-body">
+          <div id="growthChartContent"></div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="padding:8px 12px 16px;display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">
+        <button class="btn btn-primary" onclick="switchScreen('s02')" style="flex:1;">🔄 再来一次</button>
+        <button class="btn btn-outline" onclick="switchScreen('s05')" style="flex:1;">📋 查看对话回放</button>
+        <button class="btn btn-outline" onclick="switchScreen('s01')" style="flex:1;">🏠 返回工作台</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== S05: 陪练历史 ==================== -->
+  <div class="screen" id="screen-s05">
+    <div class="content-area" style="flex:1;overflow-y:auto;">
+      <div style="padding:8px 12px;font-size:13px;font-weight:600;">📋 陪练历史</div>
+
+      <!-- Filters -->
+      <div class="filter-row">
+        <button class="filter-chip active" onclick="this.classList.toggle('active')">场景 全部 ▾</button>
+        <button class="filter-chip" onclick="this.classList.toggle('active')">难度 全部 ▾</button>
+        <button class="filter-chip" onclick="this.classList.toggle('active')">日期 近30天 ▾</button>
+        <button class="filter-chip" onclick="this.classList.toggle('active')">得分 全部 ▾</button>
+      </div>
+
+      <!-- List -->
+      <div style="font-size:10px;color:#999;padding:4px 12px;display:flex;gap:12px;">
+        <span style="width:40px;">日期</span><span style="flex:1;">场景</span><span style="width:40px;">得分</span><span style="width:40px;">时长</span><span style="width:30px;"></span>
+      </div>
+      <div class="history-row" onclick="showPlayback()">
+        <span style="width:40px;font-size:10px;">07-01</span>
+        <span style="flex:1;font-size:11px;">连锁零售-手机销售 💬</span>
+        <span style="width:40px;font-size:11px;font-weight:600;color:#ad6800;">78</span>
+        <span style="width:40px;font-size:10px;color:#999;">18min</span>
+        <span style="font-size:10px;color:#999;">→</span>
+      </div>
+      <div class="history-row" onclick="showPlayback()">
+        <span style="width:40px;font-size:10px;">06-28</span>
+        <span style="flex:1;font-size:11px;">连锁零售-笔记本 💬</span>
+        <span style="width:40px;font-size:11px;font-weight:600;color:#389e0d;">72</span>
+        <span style="width:40px;font-size:10px;color:#999;">22min</span>
+        <span style="font-size:10px;color:#999;">→</span>
+      </div>
+      <div class="history-row" onclick="showPlayback()">
+        <span style="width:40px;font-size:10px;">06-20</span>
+        <span style="flex:1;font-size:11px;">通用破冰 🎤</span>
+        <span style="width:40px;font-size:11px;font-weight:600;color:#ad6800;">62</span>
+        <span style="width:40px;font-size:10px;color:#999;">15min</span>
+        <span style="font-size:10px;color:#999;">→</span>
+      </div>
+      <div class="history-row" onclick="showPlayback()">
+        <span style="width:40px;font-size:10px;">06-15</span>
+        <span style="flex:1;font-size:11px;">金融保险-重疾 💬</span>
+        <span style="width:40px;font-size:11px;font-weight:600;color:#cf1322;">58</span>
+        <span style="width:40px;font-size:10px;color:#999;">20min</span>
+        <span style="font-size:10px;color:#999;">→</span>
+      </div>
+      <div class="history-row" onclick="showPlayback()">
+        <span style="width:40px;font-size:10px;">06-10</span>
+        <span style="flex:1;font-size:11px;">连锁零售-手机 💬</span>
+        <span style="width:40px;font-size:11px;font-weight:600;color:#389e0d;">68</span>
+        <span style="width:40px;font-size:10px;color:#999;">16min</span>
+        <span style="font-size:10px;color:#999;">→</span>
+      </div>
+
+      <!-- Playback view (hidden by default) -->
+      <div id="playback-view" style="display:none;border-top:1px solid #eee;margin-top:8px;">
+        <div style="padding:8px 12px;background:#fdf8f3;font-size:12px;font-weight:600;display:flex;justify-content:space-between;">
+          <span>📋 对话回放：07-01 连锁零售-手机销售</span>
+          <button class="btn btn-ghost btn-sm" onclick="hidePlayback()" style="font-size:10px;">✕ 关闭</button>
+        </div>
+        <div class="review-item">
+          <strong>👤 王阿姨：</strong>我想给我儿子买个手机…能推荐吗？
+        </div>
+        <div class="review-item">
+          <strong>🧑 学员：</strong>您好王阿姨！请问您儿子主要用手机来做些什么呢？
+        </div>
+        <div class="review-item">
+          <strong>👤 王阿姨：</strong>他就是打游戏、刷视频吧…
+          <span class="deduction"><span class="punctuation-badge">-1 未追问预算</span></span>
+        </div>
+        <div class="review-item">
+          <strong>🧑 学员：</strong>打游戏和刷视频的话，我推荐我们这款主打性能的机型…
+          <span class="deduction"><span class="punctuation-badge">-1 未先做价值确认</span></span>
+        </div>
+        <div class="review-item">
+          <strong>👤 王阿姨：</strong>那价格呢？我预算有限…
+        </div>
+        <div class="review-item">
+          <strong>🧑 学员：</strong>理解您的顾虑，王阿姨。我们这款性价比很高…
+        </div>
+        <!-- Playback controls -->
+        <div class="playback-bar">
+          <button class="btn btn-ghost btn-sm">⏮</button>
+          <button class="btn btn-primary btn-sm" style="border-radius:50%;width:36px;height:36px;padding:0;">▶</button>
+          <button class="btn btn-ghost btn-sm">⏭</button>
+          <div style="flex:1;height:4px;background:#e8e4df;border-radius:2px;margin:0 8px;">
+            <div style="width:45%;height:100%;background:#b8976e;border-radius:2px;"></div>
+          </div>
+          <span style="font-size:10px;color:#999;">02:18 / 04:52</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB BAR ==================== -->
+  <div class="tab-bar">
+    <button class="tab-item active" onclick="switchScreen('s01')" id="tab-s01">
+      <span class="tab-icon">🏠</span>工作台
+    </button>
+    <button class="tab-item" onclick="switchScreen('s02')" id="tab-s02">
+      <span class="tab-icon">➕</span>新建
+    </button>
+    <button class="tab-item" onclick="switchScreen('s05')" id="tab-s05">
+      <span class="tab-icon">📋</span>历史
+    </button>
+    <button class="tab-item" onclick="switchScreen('s04')" id="tab-s04">
+      <span class="tab-icon">📈</span>成长
+    </button>
+  </div>
+
+  <!-- Home Indicator -->
+  <div class="home-indicator"></div>
+
+  <!-- Modals -->
+  <!-- End practice confirm -->
+  <div class="modal-overlay" id="modal-end" style="display:none;">
+    <div class="modal-box">
+      <h4>确定结束本次陪练？</h4>
+      <p>结束后将自动生成评估报告，您可以在历史记录中查看回放。</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline btn-sm" onclick="hideModal('modal-end')">取消</button>
+        <button class="btn btn-primary btn-sm" onclick="endConfirm()">确定结束</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hang up confirm -->
+  <div class="modal-overlay" id="modal-hangup" style="display:none;">
+    <div class="modal-box">
+      <h4>确定挂断？</h4>
+      <p>挂断后将自动生成评估报告。</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline btn-sm" onclick="hideModal('modal-hangup')">取消</button>
+        <button class="btn btn-primary btn-sm" onclick="hangupConfirm()">确定挂断</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu modal -->
+  <div class="modal-overlay" id="modal-menu" style="display:none;">
+    <div class="modal-box" style="text-align:left;">
+      <h4 style="text-align:center;">更多操作</h4>
+      <button class="btn btn-ghost btn-block" style="justify-content:flex-start;margin:4px 0;" onclick="hideModal('modal-menu');endPractice();">🏁 结束陪练</button>
+      <button class="btn btn-ghost btn-block" style="justify-content:flex-start;margin:4px 0;" onclick="hideModal('modal-menu');toggleReasoningPanel();">💭 查看推理</button>
+      <button class="btn btn-ghost btn-block" style="justify-content:flex-start;margin:4px 0;" onclick="hideModal('modal-menu')">取消</button>
+    </div>
+  </div>
+
+</div><!-- /phone-screen -->
+</div><!-- /phone-shell -->
+
+<script>
+// ============ Login State ============
+let isLoggedIn = false;
+let codeTimer = null;
+
+function initLoginState() {
+  if (!isLoggedIn) {
+    document.getElementById('phoneScreen').classList.add('logged-out');
+  }
+}
+
+function getVerifyCode() {
+  const btn = document.getElementById('codeBtn');
+  if (codeTimer) return;
+  let sec = 60;
+  btn.disabled = true;
+  btn.textContent = sec + 's后重发';
+  btn.style.background = '#ccc';
+  codeTimer = setInterval(() => {
+    sec--;
+    if (sec <= 0) {
+      clearInterval(codeTimer);
+      codeTimer = null;
+      btn.disabled = false;
+      btn.textContent = '获取验证码';
+      btn.style.background = '';
+    } else {
+      btn.textContent = sec + 's后重发';
+    }
+  }, 1000);
+  showToast('验证码已发送');
+}
+
+function doLogin() {
+  const account = document.getElementById('login-account').value.trim();
+  const code = document.getElementById('login-code').value.trim();
+  if (!account) { showToast('请输入手机号/工号'); return; }
+  if (!code) { showToast('请输入验证码'); return; }
+
+  const loading = document.getElementById('loginLoading');
+  loading.style.display = 'flex';
+  setTimeout(() => {
+    loading.style.display = 'none';
+    isLoggedIn = true;
+    document.getElementById('phoneScreen').classList.remove('logged-out');
+    switchScreen('s01');
+    showToast('登录成功');
+  }, 2000);
+}
+
+function ssoLogin(platform) {
+  const names = { wecom: '企业微信', feishu: '飞书', dingtalk: '钉钉' };
+  const loading = document.getElementById('loginLoading');
+  loading.style.display = 'flex';
+  showToast('正在跳转' + names[platform] + '授权…');
+  setTimeout(() => {
+    loading.style.display = 'none';
+    isLoggedIn = true;
+    document.getElementById('phoneScreen').classList.remove('logged-out');
+    switchScreen('s01');
+    showToast(names[platform] + '登录成功');
+  }, 2000);
+}
+
+function doLogout() {
+  document.getElementById('logoutOverlay').style.display = 'flex';
+}
+function confirmLogout() {
+  hideModal('logoutOverlay');
+  isLoggedIn = false;
+  document.getElementById('phoneScreen').classList.add('logged-out');
+  document.getElementById('login-account').value = '';
+  document.getElementById('login-code').value = '';
+  showToast('已退出登录');
+}
+function cancelLogout() {
+  hideModal('logoutOverlay');
+}
+
+function showOnboarding() {
+  // If on login screen, ensure login is done first (or show onboarding anyway)
+  onboardingStep = 1;
+  document.getElementById('onboardStep1').style.display = 'block';
+  document.getElementById('onboardStep2').style.display = 'none';
+  document.getElementById('onboardStep3').style.display = 'none';
+  document.getElementById('onboardingOverlay').classList.remove('hidden');
+}
+
+// ============ Onboarding ============
+let onboardingStep = 1;
+let voiceModeActive = false; // set true when entering via voice mode
+
+function nextOnboardStep(step) {
+  onboardingStep = step;
+  document.getElementById('onboardStep1').style.display = step === 1 ? 'block' : 'none';
+  document.getElementById('onboardStep2').style.display = step === 2 ? 'block' : 'none';
+  document.getElementById('onboardStep3').style.display = step === 3 ? 'block' : 'none';
+}
+
+function closeOnboarding() {
+  document.getElementById('onboardingOverlay').classList.add('hidden');
+}
+
+function closeOnboardingAndStart() {
+  document.getElementById('onboardingOverlay').classList.add('hidden');
+  switchScreen('s02');
+}
+
+// ============ Screen switching ============
+let currentScreen = 's01';
+let currentMode = 'text'; // 'text' or 'voice'
+
+function switchScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+
+  if (screenId === 's01') {
+    document.getElementById('screen-s01').classList.add('active');
+    document.getElementById('tab-s01').classList.add('active');
+  } else if (screenId === 's02') {
+    document.getElementById('screen-s02').classList.add('active');
+    document.getElementById('tab-s02').classList.add('active');
+    resetS02();
+  } else if (screenId === 's04') {
+    document.getElementById('screen-s04').classList.add('active');
+    document.getElementById('tab-s04').classList.add('active');
+    renderScoreTable();
+    // Show mic icon if voice mode
+    document.getElementById('scoreMicIcon').style.display = voiceModeActive ? 'inline' : 'none';
+    // Show voice panel only if voice mode
+    document.getElementById('voicePanel').style.display = voiceModeActive ? 'block' : 'none';
+  } else if (screenId === 's05') {
+    document.getElementById('screen-s05').classList.add('active');
+    document.getElementById('tab-s05').classList.add('active');
+  }
+  currentScreen = screenId;
+}
+
+function switchToTextPractice() {
+  voiceModeActive = false;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-s03-text').classList.add('active');
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  currentScreen = 's03-text';
+  // Check if multi-role mode based on selected scene
+  detectMultiRoleMode();
+}
+
+// ============ Multi-role mode ============
+let multiRoleMode = false;
+let multiRoleSceneName = '';
+
+function detectMultiRoleMode() {
+  const roleCountMap = {
+    '手机销售': 1, '笔记本销售': 2, '家电销售': 1,
+    '保险推介': 1, '餐饮加盟': 2, '物流方案': 3
+  };
+  const roleCount = roleCountMap[selectedScene] || 1;
+  if (roleCount >= 2) {
+    enableMultiRoleMode(selectedScene);
+  } else {
+    disableMultiRoleMode();
+  }
+}
+
+function enableMultiRoleMode(sceneName) {
+  multiRoleMode = true;
+  multiRoleSceneName = sceneName;
+  document.getElementById('multiRoleBar').style.display = 'block';
+  document.getElementById('singleRoleInfo').style.display = 'none';
+  // Reset role chips
+  document.querySelectorAll('.role-chip').forEach(c => c.classList.remove('speaking'));
+  // Load L4 difficulty tag
+  const topBarTag = document.querySelector('#screen-s03-text .tag-yellow');
+  if (topBarTag) {
+    topBarTag.textContent = 'L4 多人决策';
+    topBarTag.className = 'tag tag-red';
+  }
+  // Replace chat content with L4 flow
+  resetChatForMultiRole();
+}
+
+function disableMultiRoleMode() {
+  multiRoleMode = false;
+  multiRoleSceneName = '';
+  document.getElementById('multiRoleBar').style.display = 'none';
+  document.getElementById('singleRoleInfo').style.display = 'block';
+}
+
+function highlightSpeakingRole(roleName) {
+  document.querySelectorAll('.role-chip').forEach(c => {
+    if (c.dataset.role === roleName) {
+      c.classList.add('speaking');
+    } else {
+      c.classList.remove('speaking');
+    }
+  });
+}
+
+function resetChatForMultiRole() {
+  const chatArea = document.getElementById('chat-area');
+  chatArea.innerHTML = '<div style="padding:6px 10px;text-align:center;font-size:9px;color:#999;">陪练开始 · L4多人决策 · 2026-07-01 10:00</div>';
+
+  // L4 prebuilt flow - step 1
+  const msg1 = document.createElement('div');
+  msg1.className = 'chat-msg ai';
+  msg1.style.margin = '8px 10px';
+  msg1.innerHTML = `
+    <div class="chat-avatar">👨</div>
+    <div>
+      <div class="chat-bubble ai"><span style="font-size:9px;color:#b8976e;font-weight:600;">👨王叔叔：</span>销售你好，我们一家人都来看看，想给儿子买个手机。</div>
+      <div class="chat-time">10:00</div>
+    </div>
+  `;
+  chatArea.appendChild(msg1);
+  highlightSpeakingRole('王叔叔');
+}
+
+// L4 conversation tracking
+let l4DialogStep = 0;
+
+function advanceL4Dialog() {
+  const chatArea = document.getElementById('chat-area');
+  const now = new Date();
+  const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  l4DialogStep++;
+
+  if (l4DialogStep === 1) {
+    // Insert discussion hint
+    const hint = document.createElement('div');
+    hint.style.cssText = 'margin:8px 10px;padding:8px 12px;background:#f0f0f0;border-radius:8px;font-size:10px;color:#888;text-align:center;';
+    hint.textContent = '[王叔叔和李阿姨正在商量…]';
+    chatArea.appendChild(hint);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  } else if (l4DialogStep === 2) {
+    // 李阿姨 speaks
+    highlightSpeakingRole('李阿姨');
+    const msg = document.createElement('div');
+    msg.className = 'chat-msg ai';
+    msg.style.margin = '8px 10px';
+    msg.innerHTML = `
+      <div class="chat-avatar">👩</div>
+      <div>
+        <div class="chat-bubble ai"><span style="font-size:9px;color:#b8976e;font-weight:600;">👩李阿姨：</span>你说这款性能好？可我觉得太贵了，学生用那么好的干什么？</div>
+        <div class="chat-time">${time}</div>
+      </div>
+    `;
+    chatArea.appendChild(msg);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  } else if (l4DialogStep === 3) {
+    // 小张 speaks
+    highlightSpeakingRole('小张');
+    const msg = document.createElement('div');
+    msg.className = 'chat-msg ai';
+    msg.style.margin = '8px 10px';
+    msg.innerHTML = `
+      <div class="chat-avatar">👦</div>
+      <div>
+        <div class="chat-bubble ai"><span style="font-size:9px;color:#b8976e;font-weight:600;">👦小张：</span>妈，我就想要这款，同学都在用。</div>
+        <div class="chat-time">${time}</div>
+      </div>
+    `;
+    chatArea.appendChild(msg);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  } else if (l4DialogStep >= 4) {
+    // 王叔叔 wraps up
+    highlightSpeakingRole('王叔叔');
+    const msg = document.createElement('div');
+    msg.className = 'chat-msg ai';
+    msg.style.margin = '8px 10px';
+    msg.innerHTML = `
+      <div class="chat-avatar">👨</div>
+      <div>
+        <div class="chat-bubble ai"><span style="font-size:9px;color:#b8976e;font-weight:600;">👨王叔叔：</span>你们先别吵…销售，你说说这款到底好在哪？</div>
+        <div class="chat-time">${time}</div>
+      </div>
+    `;
+    chatArea.appendChild(msg);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }
+}
+
+// ============ Reasoning Panel ============
+function toggleReasoningPanel() {
+  const panel = document.getElementById('reasoningPanel');
+  if (panel.style.display === 'none' || panel.style.display === '') {
+    panel.style.display = 'block';
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+function switchToVoicePractice() {
+  voiceModeActive = true;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-s03-voice').classList.add('active');
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  currentScreen = 's03-voice';
+}
+
+// ============ S02 Logic ============
+let s02Step = 1;
+let selectedScene = '手机销售';
+let selectedIndustry = '连锁零售';
+let selectedDiff = 'L2';
+
+function resetS02() {
+  s02Step = 1;
+  document.getElementById('s02-step1').style.display = 'block';
+  document.getElementById('s02-step2').style.display = 'none';
+  document.getElementById('s02-step3').style.display = 'none';
+  updateS02Steps();
+}
+
+function updateS02Steps() {
+  const d1 = document.getElementById('step1-dot');
+  const d2 = document.getElementById('step2-dot');
+  const d3 = document.getElementById('step3-dot');
+  const l1 = document.getElementById('line1');
+  const l2 = document.getElementById('line2');
+  const label = document.getElementById('s02-step-label');
+
+  d1.className = 'step'; d2.className = 'step'; d3.className = 'step';
+  l1.className = 'step-line'; l2.className = 'step-line';
+
+  if (s02Step >= 1) { d1.classList.add(s02Step === 1 ? 'active' : 'done'); d1.textContent = s02Step > 1 ? '✓' : '1'; }
+  if (s02Step >= 2) { l1.classList.add('done'); d2.classList.add(s02Step === 2 ? 'active' : 'done'); d2.textContent = s02Step > 2 ? '✓' : '2'; }
+  if (s02Step >= 3) { l2.classList.add('done'); d3.classList.add('active'); d3.textContent = '3'; }
+
+  const labels = ['① 选择场景', '② 选择难度', '③ 选择模式'];
+  label.textContent = labels[s02Step - 1];
+}
+
+function selectIndustry(el, name) {
+  document.querySelectorAll('.industry-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  selectedIndustry = name;
+}
+
+function selectScene(el) {
+  document.querySelectorAll('.scene-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedScene = el.dataset.scene;
+}
+
+function selectDiff(el, level) {
+  document.querySelectorAll('.diff-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedDiff = level;
+}
+
+function goStep1() {
+  s02Step = 1;
+  document.getElementById('s02-step1').style.display = 'block';
+  document.getElementById('s02-step2').style.display = 'none';
+  document.getElementById('s02-step3').style.display = 'none';
+  updateS02Steps();
+}
+
+function goStep2() {
+  s02Step = 2;
+  document.getElementById('s02-step1').style.display = 'none';
+  document.getElementById('s02-step2').style.display = 'block';
+  document.getElementById('s02-step3').style.display = 'none';
+  updateS02Steps();
+  document.getElementById('s02-content').scrollTop = 0;
+}
+
+function goStep3() {
+  s02Step = 3;
+  document.getElementById('s02-step1').style.display = 'none';
+  document.getElementById('s02-step2').style.display = 'none';
+  document.getElementById('s02-step3').style.display = 'block';
+  updateS02Steps();
+  document.getElementById('s02-content').scrollTop = 0;
+}
+
+function selectMode(mode) {
+  currentMode = mode;
+  const textCard = document.getElementById('mode-text-card');
+  const voiceCard = document.getElementById('mode-voice-card');
+  const voiceSub = document.getElementById('voice-sub-options');
+
+  textCard.style.border = mode === 'text' ? '2px solid #b8976e' : '1px solid #e8e4df';
+  voiceCard.style.border = mode === 'voice' ? '2px solid #b8976e' : '1px solid #e8e4df';
+  textCard.querySelector('div:last-child span').textContent = mode === 'text' ? '● 已选择' : '○ 未选择';
+  textCard.querySelector('div:last-child span').style.color = mode === 'text' ? '#b8976e' : '#999';
+  voiceCard.querySelector('div:last-child span').textContent = mode === 'voice' ? '● 已选择' : '○ 未选择';
+  voiceCard.querySelector('div:last-child span').style.color = mode === 'voice' ? '#b8976e' : '#999';
+  voiceSub.style.display = mode === 'voice' ? 'block' : 'none';
+}
+
+function selectVoiceSub(type) {
+  const pttBtn = document.getElementById('ptt-btn');
+  const vadBtn = document.getElementById('vad-btn');
+  const desc = document.getElementById('voice-sub-desc');
+  if (type === 'ptt') {
+    pttBtn.className = 'btn btn-primary btn-sm'; pttBtn.style.flex = '1';
+    vadBtn.className = 'btn btn-outline btn-sm'; vadBtn.style.flex = '1';
+    pttBtn.textContent = '● PTT 按住说话';
+    vadBtn.textContent = '○ VAD 自动检测';
+    desc.textContent = 'PTT：按住说话 — 适合嘈杂环境';
+  } else {
+    vadBtn.className = 'btn btn-primary btn-sm'; vadBtn.style.flex = '1';
+    pttBtn.className = 'btn btn-outline btn-sm'; pttBtn.style.flex = '1';
+    vadBtn.textContent = '● VAD 自动检测';
+    pttBtn.textContent = '○ PTT 按住说话';
+    desc.textContent = 'VAD：自动检测 — 适合安静环境';
+  }
+}
+
+function startPractice() {
+  if (currentMode === 'voice') {
+    switchToVoicePractice();
+  } else {
+    switchToTextPractice();
+  }
+}
+
+// ============ Chat ============
+function updateSendBtn() {
+  const input = document.getElementById('chat-input');
+  const btn = document.getElementById('send-btn');
+  if (input.value.trim()) {
+    btn.classList.add('active');
+  } else {
+    btn.classList.remove('active');
+  }
+}
+
+function sendMessage() {
+  const input = document.getElementById('chat-input');
+  if (!input.value.trim()) return;
+
+  const chatArea = document.getElementById('chat-area');
+  const now = new Date();
+  const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'chat-msg user';
+  msgDiv.style.margin = '8px 10px';
+  msgDiv.innerHTML = `
+    <div class="chat-avatar" style="background:#3d4f6b;color:#fff;">张</div>
+    <div>
+      <div class="chat-bubble user">${input.value}</div>
+      <div class="chat-time">${time}</div>
+    </div>
+  `;
+  chatArea.appendChild(msgDiv);
+  input.value = '';
+  updateSendBtn();
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  // Multi-role mode: advance L4 dialog
+  if (multiRoleMode) {
+    setTimeout(() => {
+      advanceL4Dialog();
+    }, 1800);
+    return;
+  }
+
+  // Simulate AI reply after delay
+  setTimeout(() => {
+    const replies = [
+      '嗯…我再考虑考虑吧，你说的也有道理，但我还想再看看别的。',
+      '那保修多久啊？万一坏了怎么办？',
+      '行吧，那就这款吧。不过你能再便宜点不？',
+      '我回去跟我儿子商量商量，明天再来。',
+    ];
+    const reply = replies[Math.floor(Math.random() * replies.length)];
+    const aiDiv = document.createElement('div');
+    aiDiv.className = 'chat-msg ai';
+    aiDiv.style.margin = '8px 10px';
+    aiDiv.innerHTML = `
+      <div class="chat-avatar">👤</div>
+      <div>
+        <div class="chat-bubble ai">${reply}</div>
+        <div class="chat-time">${time}</div>
+      </div>
+    `;
+    chatArea.appendChild(aiDiv);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }, 1500);
+}
+
+// ============ Voice ============
+function simulateVoiceInput() {
+  showToast('🎤 正在录音中…');
+  setTimeout(() => {
+    const aiSpeaking = document.getElementById('ai-speaking');
+    aiSpeaking.style.opacity = '0.6';
+    setTimeout(() => { aiSpeaking.style.opacity = '1'; }, 2000);
+  }, 1000);
+}
+
+function togglePTTVAD() {
+  const btn = document.getElementById('ptt-vad-toggle');
+  if (btn.textContent === 'PTT') {
+    btn.textContent = 'VAD';
+    showToast('已切换为 VAD 自动检测模式');
+  } else {
+    btn.textContent = 'PTT';
+    showToast('已切换为 PTT 按住说话模式');
+  }
+}
+
+function simulateASRFailure() {
+  showToast('ASR 识别失败，请手动输入');
+  document.getElementById('voice-fallback-input').style.display = 'block';
+}
+
+function hangUpVoice() {
+  document.getElementById('modal-hangup').style.display = 'flex';
+}
+
+function hangupConfirm() {
+  hideModal('modal-hangup');
+  switchScreen('s04');
+}
+
+// ============ End Practice ============
+function endPractice() {
+  document.getElementById('modal-end').style.display = 'flex';
+}
+
+function endConfirm() {
+  hideModal('modal-end');
+  switchScreen('s04');
+}
+
+function showMenu() {
+  document.getElementById('modal-menu').style.display = 'flex';
+}
+
+// ============ Modal ============
+function hideModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+// ============ Toast ============
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2500);
+}
+
+// ============ Score Table ============
+function renderScoreTable() {
+  const scores = [
+    ['开场破冰自然度', 8, '✅'], ['语言亲和力', 7, '✅'], ['倾听回应', 6, '⚠️'],
+    ['开放式提问', 5, '🔴低'], ['需求深挖深度', 8, '✅'], ['BAT探测', 4, '🔴低'],
+    ['卖点匹配', 7, '✅'], ['FABE转化', 6, '⚠️'], ['用户证言', 8, '✅'],
+    ['认同转化', 7, '✅'], ['价值对比', 6, '⚠️'], ['竞品应对', 5, '🔴低'],
+    ['价格谈判', 4, '🔴低'], ['时机把握', 7, '✅'], ['紧迫感制造', 5, '🔴低'],
+    ['下一步引导', 8, '✅'], ['收尾礼貌', 9, '✅']
+  ];
+  const container = document.getElementById('score-table');
+  let html = '<table style="width:100%;border-collapse:collapse;">';
+  html += '<tr style="font-weight:600;border-bottom:1px solid #eee;"><td style="width:50%;">维度</td><td style="width:20%;">评分</td><td style="width:30%;">状态</td></tr>';
+  scores.forEach(([name, score, status]) => {
+    const bg = score < 6 ? '#fff1f0' : (score < 7 ? '#fffbe6' : 'transparent');
+    html += `<tr style="background:${bg};border-bottom:1px solid #f5f5f5;font-size:10px;">`;
+    html += `<td style="padding:3px 4px;">${name}</td>`;
+    html += `<td style="padding:3px 4px;font-weight:600;color:${score<6?'#cf1322':score<7?'#ad6800':'#389e0d'};">${score}</td>`;
+    html += `<td style="padding:3px 4px;">${status}</td></tr>`;
+  });
+  html += '</table>';
+  container.innerHTML = html;
+}
+
+// ============ Playback ============
+function showPlayback() {
+  document.getElementById('playback-view').style.display = 'block';
+}
+
+function hidePlayback() {
+  document.getElementById('playback-view').style.display = 'none';
+}
+
+// ============ Voice Panel Toggle ============
+function toggleVoicePanel() {
+  const panel = document.getElementById('voicePanel');
+  panel.classList.toggle('open');
+}
+
+// ============ Growth Panel Toggle ============
+function toggleGrowthPanel() {
+  const panel = document.getElementById('growthPanel');
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) {
+    renderGrowthChart();
+  }
+}
+
+// ============ Growth Chart ============
+function renderGrowthChart() {
+  const container = document.getElementById('growthChartContent');
+  // Simulated 5-session data (use placeholder if fewer than 3 sessions)
+  const hasData = true; // set false to show placeholder
+  if (!hasData) {
+    container.innerHTML = '<div class="growth-placeholder">至少需要3次陪练才能生成成长曲线</div>';
+    return;
+  }
+
+  // 5 sessions × 5 dimensions
+  const sessions = ['第1次', '第2次', '第3次', '第4次', '第5次'];
+  const dims = [
+    { name: '沟通表达', color: '#3d4f6b', scores: [62, 66, 68, 72, 75] },
+    { name: '需求挖掘', color: '#b8976e', scores: [55, 65, 70, 78, 82] },
+    { name: '产品介绍', color: '#27ae60', scores: [68, 70, 73, 76, 80] },
+    { name: '异议处理', color: '#e67e22', scores: [40, 48, 55, 62, 72] },
+    { name: '成交推进', color: '#e74c3c', scores: [52, 55, 58, 60, 65] }
+  ];
+
+  const w = 300, h = 200, padL = 30, padR = 10, padT = 10, padB = 28;
+  const plotW = w - padL - padR, plotH = h - padT - padB;
+
+  let svg = '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" style="display:block;margin:0 auto;">';
+
+  // Y-axis grid lines + labels
+  for (let yVal = 0; yVal <= 100; yVal += 20) {
+    const y = padT + plotH - (yVal / 100) * plotH;
+    svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (w - padR) + '" y2="' + y + '" stroke="#e8e4df" stroke-width="1" stroke-dasharray="4,3"/>';
+    svg += '<text x="' + (padL - 5) + '" y="' + (y + 3) + '" text-anchor="end" font-size="7" fill="#999">' + yVal + '</text>';
+  }
+
+  // X-axis labels
+  const xStep = plotW / (sessions.length - 1);
+  for (let i = 0; i < sessions.length; i++) {
+    const x = padL + i * xStep;
+    svg += '<text x="' + x + '" y="' + (h - 6) + '" text-anchor="middle" font-size="8" fill="#666">' + sessions[i] + '</text>';
+  }
+
+  // Data lines
+  dims.forEach(dim => {
+    let points = '';
+    dim.scores.forEach((score, i) => {
+      const x = padL + i * xStep;
+      const y = padT + plotH - (score / 100) * plotH;
+      points += (i === 0 ? 'M' : 'L') + x + ',' + y + ' ';
+    });
+    svg += '<path d="' + points + '" fill="none" stroke="' + dim.color + '" stroke-width="2" stroke-linejoin="round"/>';
+    // Dots
+    dim.scores.forEach((score, i) => {
+      const x = padL + i * xStep;
+      const y = padT + plotH - (score / 100) * plotH;
+      svg += '<circle cx="' + x + '" cy="' + y + '" r="3" fill="' + dim.color + '"/>';
+    });
+  });
+
+  // Legend (bottom right of chart)
+  let legendX = w - padR - 68;
+  let legendY = padT + 6;
+  dims.forEach((dim, idx) => {
+    const ly = legendY + idx * 14;
+    svg += '<circle cx="' + legendX + '" cy="' + ly + '" r="4" fill="' + dim.color + '"/>';
+    svg += '<text x="' + (legendX + 8) + '" y="' + (ly + 3) + '" font-size="7" fill="#666">' + dim.name + '</text>';
+  });
+
+  svg += '</svg>';
+
+  // Summary
+  const summary = '<div class="growth-summary">🏆 异议处理提升最大（+28分），成交推进仍需加强</div>';
+
+  container.innerHTML = '<div class="growth-chart-wrap">' + svg + '</div>' + summary;
+}
+
+// ============ Init ============
+initLoginState();
+document.getElementById('chat-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) {
+      overlay.style.display = 'none';
+    }
+  });
+});
+</script>
+</body>
+</html>

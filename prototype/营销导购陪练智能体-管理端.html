@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Studio Training — 管理端</title>
+<style>
+/* ========== Reset & Base ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f6f4f0; color: #2c3a4f; height: 100vh; overflow: hidden; display: flex; }
+h1, h2, h3, h4 { font-family: 'Noto Serif SC', 'STSong', serif; font-weight: 600; }
+
+/* ========== Login Page ========== */
+body.login { display: block; overflow: auto; background: #f6f4f0; }
+body.login .sidebar, body.login .main, body.login .overlay, body.login .drawer, body.login .modal, body.login .toast { display: none !important; }
+body.login #loginPage { display: flex; }
+#loginPage { display: none; width: 100vw; height: 100vh; }
+.login-container { display: flex; width: 780px; max-width: 95vw; margin: auto; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.12); }
+.login-brand { width: 300px; min-width: 300px; background: linear-gradient(180deg, #2c3a4f 0%, #3d4f6b 100%); color: #f6f4f0; display: flex; flex-direction: column; justify-content: center; padding: 48px 32px; }
+.login-brand h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; letter-spacing: 0.5px; }
+.login-brand p { font-size: 13px; color: #b8976e; line-height: 1.6; }
+.login-brand .deco-line { width: 40px; height: 3px; background: #b8976e; margin-top: 18px; border-radius: 2px; }
+.login-form-area { flex: 1; background: #fff; padding: 48px 40px; display: flex; flex-direction: column; justify-content: center; }
+.login-form-area h3 { font-size: 20px; color: #3d4f6b; margin-bottom: 24px; }
+.login-form-area .form-group { margin-bottom: 16px; }
+.login-form-area .form-group label { display: block; font-size: 12px; color: #8999ab; margin-bottom: 4px; font-weight: 600; }
+.login-form-area .form-group input { width: 100%; padding: 10px 12px; border: 1px solid #ddd9d2; border-radius: 6px; font-size: 14px; font-family: inherit; background: #faf9f7; transition: border .2s; }
+.login-form-area .form-group input:focus { outline: none; border-color: #b8976e; }
+.login-btn { width: 100%; padding: 12px; background: #b8976e; color: #fff; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background .2s; font-family: inherit; margin-top: 4px; }
+.login-btn:hover { background: #9e7d56; }
+.login-btn.loading { pointer-events: none; opacity: 0.7; }
+.login-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; font-size: 11px; color: #8999ab; }
+.login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: #e8e5df; }
+.sso-btns { display: flex; gap: 10px; margin-bottom: 16px; }
+.sso-btn { flex: 1; padding: 8px; border: 1px solid #ddd9d2; border-radius: 6px; background: #faf9f7; cursor: pointer; font-size: 12px; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: inherit; color: #5a7d9a; }
+.sso-btn:hover { border-color: #b8976e; color: #b8976e; background: #fef9f0; }
+.forgot-link { font-size: 12px; color: #5a7d9a; text-align: center; cursor: pointer; }
+.forgot-link:hover { color: #b8976e; }
+
+/* ========== Team Management ========== */
+.team-layout { display: flex; gap: 16px; height: calc(100vh - 130px); }
+.team-org-tree { width: 200px; min-width: 200px; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); padding: 12px; overflow-y: auto; }
+.team-org-tree h4 { font-size: 12px; color: #3d4f6b; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #e8e5df; }
+.tree-node { padding: 6px 8px; font-size: 12px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px; color: #3d4f6b; margin-bottom: 2px; }
+.tree-node:hover { background: #f6f4f0; }
+.tree-node.active { background: rgba(184,151,110,0.15); color: #b8976e; font-weight: 600; }
+.tree-node .node-count { font-size: 10px; color: #8999ab; margin-left: auto; }
+.tree-node.child { padding-left: 24px; font-size: 11px; }
+.team-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.team-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.team-toolbar .role-filter { display: flex; gap: 4px; }
+.team-toolbar .role-filter button { padding: 4px 10px; border-radius: 12px; font-size: 11px; cursor: pointer; border: 1px solid #ddd9d2; background: #fff; color: #5a7d9a; font-family: inherit; }
+.team-toolbar .role-filter button.active { background: #3d4f6b; color: #fff; border-color: #3d4f6b; }
+.team-table-wrap { flex: 1; overflow: auto; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.team-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.team-table th { position: sticky; top: 0; text-align: left; padding: 10px 12px; background: #faf9f7; border-bottom: 2px solid #e8e5df; font-size: 11px; color: #8999ab; font-weight: 600; z-index: 1; }
+.team-table td { padding: 9px 12px; border-bottom: 1px solid #f0ede8; }
+.team-table tr:hover td { background: #fdfcfa; }
+.status-online { color: #27ae60; }
+.status-offline { color: #8999ab; }
+.rbac-card { margin-top: 12px; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.rbac-header { padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-bottom: 1px solid #f0ede8; }
+.rbac-header h4 { font-size: 13px; color: #3d4f6b; }
+.rbac-toggle { font-size: 16px; color: #8999ab; transition: transform .2s; }
+.rbac-toggle.collapsed { transform: rotate(-90deg); }
+.rbac-body { padding: 12px 16px; font-size: 12px; overflow-x: auto; }
+.rbac-body.collapsed { display: none; }
+.rbac-table { width: 100%; border-collapse: collapse; }
+.rbac-table th, .rbac-table td { padding: 6px 10px; border: 1px solid #e8e5df; text-align: center; font-size: 11px; }
+.rbac-table th { background: #faf9f7; color: #5a7d9a; }
+.rbac-table .check { color: #27ae60; }
+.rbac-table .cross { color: #e74c3c; }
+
+/* ========== Knowledge Base ========== */
+.kb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.kb-card { padding: 16px; cursor: pointer; transition: box-shadow .15s; }
+.kb-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.kb-card .kb-icon { font-size: 24px; margin-bottom: 6px; }
+.kb-card .kb-name { font-family: 'Noto Serif SC', serif; font-size: 14px; font-weight: 600; color: #3d4f6b; margin-bottom: 4px; }
+.kb-card .kb-count { font-size: 11px; color: #8999ab; }
+.kb-card .kb-desc { font-size: 11px; color: #5a7d9a; margin-top: 6px; line-height: 1.4; }
+.kb-drawer-list { font-size: 12px; }
+.kb-drawer-list .kb-item { padding: 10px 12px; border-bottom: 1px solid #f0ede8; display: flex; justify-content: space-between; align-items: center; }
+.kb-drawer-list .kb-item .kb-item-title { font-weight: 600; color: #3d4f6b; }
+.kb-drawer-list .kb-item .kb-item-meta { font-size: 10px; color: #8999ab; }
+.script-toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+.script-toolbar input { padding: 6px 10px; border: 1px solid #ddd9d2; border-radius: 6px; font-size: 12px; width: 240px; font-family: inherit; }
+.script-toolbar input:focus { outline: none; border-color: #b8976e; }
+
+/* Page tabs for scenario sub-navigation */
+.scene-tab-nav { display: flex; gap: 6px; margin-bottom: 14px; }
+.scene-tab-nav button { padding: 6px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid #ddd9d2; background: #fff; color: #5a7d9a; font-family: inherit; transition: all .15s; }
+.scene-tab-nav button:hover { border-color: #b8976e; }
+.scene-tab-nav button.active { background: #3d4f6b; color: #fff; border-color: #3d4f6b; }
+.scene-sub-page { display: none; }
+.scene-sub-page.active { display: block; }
+
+/* ========== Sidebar ========== */
+.sidebar { width: 220px; min-width: 220px; background: #2c3a4f; color: #cdd6e0; display: flex; flex-direction: column; height: 100vh; }
+.sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.sidebar-logo h1 { font-size: 16px; color: #f6f4f0; letter-spacing: 0.5px; }
+.sidebar-logo span { font-size: 11px; color: #b8976e; display: block; margin-top: 2px; }
+.sidebar-nav { flex: 1; padding: 12px 0; list-style: none; }
+.sidebar-nav li { padding: 10px 18px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; transition: all .15s; border-left: 3px solid transparent; }
+.sidebar-nav li:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.sidebar-nav li.active { background: rgba(184,151,110,0.18); color: #b8976e; border-left-color: #b8976e; font-weight: 600; }
+.sidebar-nav li .icon { font-size: 16px; width: 22px; text-align: center; }
+.sidebar-user { padding: 14px 18px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 12px; display: flex; align-items: center; gap: 10px; }
+.sidebar-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: #5a7d9a; color:#fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+.sidebar-user .info .name { color: #f6f4f0; font-size: 13px; }
+.sidebar-user .info .role { color: #8999ab; font-size: 11px; }
+
+/* ========== Main ========== */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { height: 48px; min-height: 48px; background: #fff; border-bottom: 1px solid #e8e5df; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+.topbar-title { font-family: 'Noto Serif SC', serif; font-size: 16px; font-weight: 600; color: #3d4f6b; }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.topbar-right .bell { position: relative; cursor: pointer; font-size: 18px; color: #3d4f6b; }
+.topbar-right .bell .badge { position: absolute; top: -4px; right: -6px; width: 16px; height: 16px; background: #e74c3c; border-radius: 50%; font-size: 10px; color: #fff; display: flex; align-items: center; justify-content: center; }
+.topbar-right .avatar-sm { width: 30px; height: 30px; border-radius: 50%; background: #5a7d9a; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+
+.content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+/* ========== Cards ========== */
+.card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
+.stat-card { padding: 18px 20px; }
+.stat-card .label { font-size: 12px; color: #8999ab; margin-bottom: 6px; }
+.stat-card .value { font-size: 28px; font-weight: 700; color: #3d4f6b; font-family: 'Noto Serif SC', serif; }
+.stat-card .delta { font-size: 12px; margin-top: 4px; }
+.stat-card .delta.up { color: #27ae60; }
+.stat-card .delta.down { color: #e74c3c; }
+
+/* ========== Section ========== */
+.section { margin-bottom: 16px; }
+.section-title { font-family: 'Noto Serif SC', serif; font-size: 15px; font-weight: 600; color: #3d4f6b; margin-bottom: 10px; }
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* ========== Chart Placeholders & SVG ========== */
+.chart-box { padding: 16px; min-height: 240px; position: relative; }
+.chart-box .chart-label { font-size: 11px; color: #8999ab; margin-bottom: 8px; }
+.bar-chart { display: flex; align-items: flex-end; gap: 24px; height: 160px; padding: 0 8px; }
+.bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bar-group .bars { display: flex; gap: 6px; align-items: flex-end; height: 120px; }
+.bar-group .bar { width: 20px; border-radius: 3px 3px 0 0; position: relative; transition: height .3s; }
+.bar-group .bar.primary { background: #3d4f6b; }
+.bar-group .bar.accent { background: #b8976e; }
+.bar-group .bar-label { font-size: 10px; color: #8999ab; text-align: center; }
+.bar-group .bar-val { font-size: 9px; color: #3d4f6b; }
+.legend { display: flex; gap: 16px; font-size: 11px; color: #8999ab; margin-top: 8px; }
+.legend span { display: flex; align-items: center; gap: 4px; }
+.legend .dot { width: 8px; height: 8px; border-radius: 2px; }
+.legend .dot.pri { background: #3d4f6b; }
+.legend .dot.ac { background: #b8976e; }
+
+/* ========== Heatmap ========== */
+.heatmap { display: flex; flex-direction: column; gap: 4px; }
+.heatmap .h-row { display: flex; align-items: center; gap: 6px; }
+.heatmap .h-label { width: 50px; font-size: 11px; color: #8999ab; text-align: right; }
+.heatmap .h-cell { width: 48px; height: 32px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: #fff; cursor: default; }
+.heatmap .h-col-header { display: flex; gap: 6px; margin-left: 56px; margin-bottom: 2px; }
+.heatmap .h-col-header span { width: 48px; text-align: center; font-size: 9px; color: #8999ab; }
+
+/* ========== Leaderboard ========== */
+.leaderboard { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.lb-list { list-style: none; }
+.lb-list li { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0ede8; font-size: 13px; gap: 8px; }
+.lb-list .rank { width: 20px; font-weight: 700; font-size: 14px; }
+.lb-list .rank.top { color: #27ae60; }
+.lb-list .rank.btm { color: #e74c3c; }
+.lb-list .name { flex: 1; }
+.lb-list .dept { color: #8999ab; font-size: 11px; }
+.lb-list .score { font-weight: 600; }
+.lb-list .score.top { color: #27ae60; }
+.lb-list .score.btm { color: #e74c3c; }
+
+/* ========== Alert Bell Panel ========== */
+.alert-panel { display: none; position: absolute; top: 40px; right: 0; width: 320px; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); z-index: 100; padding: 16px; font-size: 13px; }
+.alert-panel.show { display: block; }
+.alert-panel h4 { font-size: 13px; margin-bottom: 8px; color: #e74c3c; }
+.alert-panel ul { list-style: none; }
+.alert-panel li { padding: 6px 0; border-bottom: 1px solid #f0ede8; font-size: 12px; }
+.alert-panel li .a-name { font-weight: 600; }
+.alert-panel li .a-detail { color: #8999ab; }
+
+/* ========== Toast ========== */
+.toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #2c3a4f; color: #fff; padding: 10px 24px; border-radius: 6px; font-size: 13px; z-index: 999; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+.toast.success { background: #27ae60; }
+.toast.warn { background: #e67e22; }
+
+/* ========== Drawer ========== */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 200; }
+.overlay.show { display: block; }
+.drawer { position: fixed; top: 0; right: 0; width: 400px; height: 100vh; background: #fff; box-shadow: -4px 0 20px rgba(0,0,0,0.1); z-index: 201; transform: translateX(100%); transition: transform .3s; overflow-y: auto; padding: 20px; }
+.drawer.show { transform: translateX(0); }
+.drawer h3 { font-family: 'Noto Serif SC', serif; font-size: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+.drawer .close-btn { cursor: pointer; font-size: 18px; color: #8999ab; border: none; background: none; }
+.drawer .form-group { margin-bottom: 14px; }
+.drawer .form-group label { display: block; font-size: 12px; color: #8999ab; margin-bottom: 4px; font-weight: 600; }
+.drawer .form-group input, .drawer .form-group select, .drawer .form-group textarea { width: 100%; padding: 8px 10px; border: 1px solid #ddd9d2; border-radius: 6px; font-size: 13px; font-family: inherit; background: #faf9f7; }
+.drawer .form-group textarea { resize: vertical; min-height: 80px; }
+.drawer .role-count { display: flex; gap: 8px; }
+.drawer .role-count .rc-btn { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #ddd9d2; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; background: #fff; }
+.drawer .role-count .rc-btn.sel { border-color: #b8976e; background: #b8976e; color: #fff; }
+.drawer .btn-row { display: flex; gap: 8px; margin-top: 16px; }
+
+/* ========== Modal ========== */
+.modal { display: none; position: fixed; inset: 0; z-index: 300; align-items: center; justify-content: center; }
+.modal.show { display: flex; }
+.modal-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
+.modal-box { position: relative; background: #fff; border-radius: 10px; padding: 24px; width: 480px; max-height: 70vh; overflow-y: auto; box-shadow: 0 8px 30px rgba(0,0,0,0.15); }
+.modal-box h3 { font-family: 'Noto Serif SC', serif; font-size: 16px; margin-bottom: 14px; }
+.modal-box .dept-tree { list-style: none; margin: 8px 0; }
+.modal-box .dept-tree li { padding: 4px 0; font-size: 13px; cursor: pointer; }
+.modal-box .dept-tree li .sub { margin-left: 20px; }
+.modal-box .dept-tree li input { margin-right: 6px; }
+.modal-box .sel-count { background: #f6f4f0; padding: 8px 12px; border-radius: 6px; font-size: 12px; color: #5a7d9a; margin: 10px 0; }
+.modal-box .modal-btns { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
+
+/* ========== Buttons ========== */
+.btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; font-family: inherit; transition: all .15s; }
+.btn-primary { background: #3d4f6b; color: #fff; }
+.btn-primary:hover { background: #2c3a4f; }
+.btn-accent { background: #b8976e; color: #fff; }
+.btn-accent:hover { background: #9e7d56; }
+.btn-outline { background: #fff; border: 1px solid #ddd9d2; color: #3d4f6b; }
+.btn-outline:hover { border-color: #b8976e; color: #b8976e; }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+.btn-danger { background: #e74c3c; color: #fff; }
+.btn-danger:hover { background: #c0392b; }
+.btn-success { background: #27ae60; color: #fff; }
+
+/* ========== Tabs ========== */
+.tab-bar { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.tab-bar .tab { padding: 5px 14px; border-radius: 14px; font-size: 12px; cursor: pointer; background: #f0ede8; color: #5a7d9a; border: none; font-family: inherit; transition: all .15s; }
+.tab-bar .tab:hover { background: #e5e0d7; }
+.tab-bar .tab.active { background: #3d4f6b; color: #fff; }
+
+/* ========== Scene Cards Grid ========== */
+.scene-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.scene-card { padding: 16px; }
+.scene-card .sc-icon { font-size: 28px; margin-bottom: 6px; }
+.scene-card .sc-name { font-family: 'Noto Serif SC', serif; font-size: 15px; font-weight: 600; color: #3d4f6b; }
+.scene-card .sc-tags { display: flex; gap: 6px; margin: 6px 0; flex-wrap: wrap; }
+.scene-card .sc-tags span { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: #f0ede8; color: #5a7d9a; }
+.scene-card .sc-tags .tag-diff { background: #fdf2e9; color: #b8976e; }
+.scene-card .sc-status { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-bottom: 8px; }
+.scene-card .sc-status.draft { background: #e8e5df; color: #8999ab; }
+.scene-card .sc-status.pub { background: #dbeafe; color: #3b82f6; }
+.scene-card .sc-status.dep { background: #dcfce7; color: #16a34a; }
+.scene-card .sc-actions { display: flex; gap: 6px; }
+
+/* ========== Table ========== */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { text-align: left; padding: 10px 12px; background: #faf9f7; border-bottom: 2px solid #e8e5df; font-size: 11px; color: #8999ab; font-weight: 600; }
+.data-table td { padding: 10px 12px; border-bottom: 1px solid #f0ede8; }
+.data-table tr:hover td { background: #fdfcfa; }
+.progress-bar { width: 80px; height: 6px; background: #f0ede8; border-radius: 3px; overflow: hidden; }
+.progress-bar .fill { height: 100%; border-radius: 3px; }
+.progress-bar .fill.green { background: #27ae60; }
+.progress-bar .fill.yellow { background: #e67e22; }
+.progress-bar .fill.red { background: #e74c3c; }
+.badge-status { font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+.badge-status.active { background: #dcfce7; color: #16a34a; }
+.badge-status.done { background: #dbeafe; color: #3b82f6; }
+.badge-status.overdue { background: #fce4ec; color: #e74c3c; }
+
+/* ========== Page Visibility ========== */
+.page { display: none; }
+.page.active { display: block; }
+.placeholder-page { display: none; flex-direction: column; align-items: center; justify-content: center; height: 60vh; color: #8999ab; }
+.placeholder-page.active { display: flex; }
+.placeholder-page .ph-icon { font-size: 48px; margin-bottom: 12px; }
+.placeholder-page .ph-text { font-size: 14px; }
+
+/* ========== Bell Wrapper ========== */
+.bell-wrap { position: relative; }
+
+/* ========== Notification Detail Panel ========== */
+.notify { background: #fef9f0; border: 1px solid #f5e6cc; border-radius: 6px; padding: 12px; font-size: 12px; margin-bottom: 14px; color: #b8976e; }
+
+/* ========== Reports ========== */
+.report-tab-nav { display: flex; gap: 6px; margin-bottom: 16px; }
+.report-tab-nav button { padding: 7px 20px; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid #ddd9d2; background: #fff; color: #5a7d9a; font-family: inherit; transition: all .15s; }
+.report-tab-nav button:hover { border-color: #b8976e; }
+.report-tab-nav button.active { background: #3d4f6b; color: #fff; border-color: #3d4f6b; }
+.report-panel { display: none; }
+.report-panel.active { display: block; }
+.mini-stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.mini-stat-card { padding: 14px 16px; }
+.mini-stat-card .label { font-size: 11px; color: #8999ab; margin-bottom: 4px; }
+.mini-stat-card .value { font-size: 22px; font-weight: 700; color: #3d4f6b; font-family: 'Noto Serif SC', serif; }
+.dual-bar-chart { display: flex; align-items: flex-end; gap: 28px; height: 180px; padding: 0 12px; }
+.dual-bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.dual-bar-group .bars { display: flex; gap: 8px; align-items: flex-end; height: 130px; }
+.dual-bar-group .bar { width: 22px; border-radius: 3px 3px 0 0; position: relative; }
+.dual-bar-group .bar.before { background: #8999ab; }
+.dual-bar-group .bar.after { background: #27ae60; }
+.dual-bar-group .bar-label { font-size: 10px; color: #8999ab; }
+.dual-bar-group .bar-val { font-size: 9px; color: #3d4f6b; white-space: nowrap; }
+.roi-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.roi-table th { text-align: left; padding: 10px 14px; background: #faf9f7; border-bottom: 2px solid #e8e5df; font-size: 12px; color: #8999ab; font-weight: 600; }
+.roi-table td { padding: 10px 14px; border-bottom: 1px solid #f0ede8; }
+.roi-table tr:hover td { background: #fdfcfa; }
+.roi-table .roi-high { color: #27ae60; font-weight: 700; }
+.roi-table .roi-mid { color: #5a7d9a; font-weight: 600; }
+.dept-progress { display: flex; flex-direction: column; gap: 10px; }
+.dept-progress-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.dept-progress-row .dept-name { width: 40px; color: #3d4f6b; font-weight: 600; }
+.dept-progress-row .dept-bar-wrap { flex: 1; height: 18px; background: #f0ede8; border-radius: 9px; overflow: hidden; }
+.dept-progress-row .dept-bar-fill { height: 100%; border-radius: 9px; background: linear-gradient(90deg, #5a7d9a, #3d4f6b); transition: width .4s; }
+.dept-progress-row .dept-pct { width: 36px; text-align: right; color: #3d4f6b; font-weight: 600; }
+.toggle-group { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.toggle-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #3d4f6b; }
+.toggle-switch { width: 40px; height: 22px; border-radius: 11px; background: #ddd9d2; cursor: pointer; position: relative; transition: background .2s; }
+.toggle-switch.on { background: #27ae60; }
+.toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left .2s; }
+.toggle-switch.on::after { left: 20px; }
+.date-picker-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 12px; color: #5a7d9a; }
+.date-picker-row input[type="date"] { padding: 6px 10px; border: 1px solid #ddd9d2; border-radius: 6px; font-size: 12px; font-family: inherit; background: #faf9f7; }
+.date-picker-row .date-sep { color: #8999ab; }
+.comparison-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.comparison-table th { text-align: left; padding: 8px 14px; background: #faf9f7; border-bottom: 2px solid #e8e5df; font-size: 11px; color: #8999ab; font-weight: 600; }
+.comparison-table td { padding: 8px 14px; border-bottom: 1px solid #f0ede8; }
+.comparison-table .up { color: #27ae60; }
+.comparison-table .down { color: #e74c3c; }
+.export-btn-row { margin-top: 16px; }
+</style>
+</head>
+<body class="login">
+
+<!-- Login Page -->
+<div id="loginPage">
+  <div class="login-container">
+    <div class="login-brand">
+      <h2>AI Studio Training</h2>
+      <p>企业销售团队的AI实战练兵场</p>
+      <div class="deco-line"></div>
+    </div>
+    <div class="login-form-area">
+      <h3>登录管理后台</h3>
+      <div class="form-group">
+        <label>邮箱</label>
+        <input type="email" id="loginEmail" placeholder="admin@company.com" value="admin@company.com">
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input type="password" id="loginPwd" placeholder="输入密码" value="password">
+      </div>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">登录</button>
+      <div class="login-divider">或</div>
+      <div class="sso-btns">
+        <button class="sso-btn" onclick="showToast('企业微信SSO登录（模拟）','success')">企微</button>
+        <button class="sso-btn" onclick="showToast('飞书SSO登录（模拟）','success')">飞书</button>
+        <button class="sso-btn" onclick="showToast('钉钉SSO登录（模拟）','success')">钉钉</button>
+      </div>
+      <div class="forgot-link">忘记密码？</div>
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>AI Studio Training</h1>
+    <span>管理端</span>
+  </div>
+  <ul class="sidebar-nav" id="sideNav">
+    <li class="active" data-page="dashboard"><span class="icon">&#x1F4CA;</span>团队看板</li>
+    <li data-page="scenarios"><span class="icon">&#x1F3AF;</span>场景管理</li>
+    <li data-page="team"><span class="icon">&#x1F465;</span>团队管理</li>
+    <li data-page="tasks"><span class="icon">&#x1F4DD;</span>任务管理</li>
+    <li data-page="reports"><span class="icon">&#x1F4C4;</span>培训报告</li>
+  </ul>
+  <div class="sidebar-user">
+    <div class="avatar">王</div>
+    <div class="info">
+      <div class="name">王主管</div>
+      <div class="role">培训经理 · 华东区域</div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle">团队看板</div>
+    <div class="topbar-right">
+      <div class="bell-wrap">
+        <div class="bell" id="bellBtn">&#x1F514;<span class="badge" id="bellBadge">4</span></div>
+        <div class="alert-panel" id="alertPanel">
+          <h4>连续3次下降</h4>
+          <ul>
+            <li><span class="a-name">王强</span> <span class="a-detail">48→45→42（华北）</span></li>
+          </ul>
+          <h4 style="margin-top:8px;">超7天未练习</h4>
+          <ul>
+            <li><span class="a-name">赵丽</span> <span class="a-detail">最近06-20（西南）</span></li>
+            <li><span class="a-name">刘刚</span> <span class="a-detail">最近06-18（华东）</span></li>
+            <li><span class="a-name">孙磊</span> <span class="a-detail">最近06-15（华北）</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="avatar-sm">王</div>
+    </div>
+  </div>
+
+  <!-- Content Area -->
+  <div class="content">
+
+    <!-- Page: Dashboard -->
+    <div class="page active" id="page-dashboard">
+      <div class="stat-cards">
+        <div class="card stat-card">
+          <div class="label">总学员数</div>
+          <div class="value">328</div>
+          <div class="delta up">↑12 本月新增</div>
+        </div>
+        <div class="card stat-card">
+          <div class="label">本月陪练</div>
+          <div class="value">1,247</div>
+          <div class="delta up">↑8% 环比</div>
+        </div>
+        <div class="card stat-card">
+          <div class="label">平均得分</div>
+          <div class="value">72.5</div>
+          <div class="delta up">↑3.2 环比</div>
+        </div>
+        <div class="card stat-card">
+          <div class="label">活跃率</div>
+          <div class="value">84%</div>
+          <div class="delta up">↑5% 环比</div>
+        </div>
+      </div>
+
+      <div class="row-2 section">
+        <div class="card chart-box" style="min-height:320px;">
+          <div class="chart-label">部门陪练对比（双轴图）</div>
+          <div class="bar-chart">
+            <div class="bar-group">
+              <div class="bars">
+                <div class="bar primary" style="height:110px;"></div>
+                <div class="bar accent" style="height:78px;"></div>
+              </div>
+              <div class="bar-val">420次</div>
+              <div class="bar-label">华东</div>
+            </div>
+            <div class="bar-group">
+              <div class="bars">
+                <div class="bar primary" style="height:90px;"></div>
+                <div class="bar accent" style="height:82px;"></div>
+              </div>
+              <div class="bar-val">310次</div>
+              <div class="bar-label">华南</div>
+            </div>
+            <div class="bar-group">
+              <div class="bars">
+                <div class="bar primary" style="height:72px;"></div>
+                <div class="bar accent" style="height:62px;"></div>
+              </div>
+              <div class="bar-val">248次</div>
+              <div class="bar-label">华北</div>
+            </div>
+            <div class="bar-group">
+              <div class="bars">
+                <div class="bar primary" style="height:80px;"></div>
+                <div class="bar accent" style="height:74px;"></div>
+              </div>
+              <div class="bar-val">269次</div>
+              <div class="bar-label">西南</div>
+            </div>
+          </div>
+          <div class="legend">
+            <span><span class="dot pri"></span>陪练次数（左轴）</span>
+            <span><span class="dot ac"></span>平均分（右轴）</span>
+          </div>
+        </div>
+        <div class="card chart-box">
+          <div class="chart-label">能力短板热力图</div>
+          <div class="h-col-header"><span>沟通</span><span>需求</span><span>产品</span><span>异议</span></div>
+          <div class="heatmap">
+            <div class="h-row"><span class="h-label">华东</span><span class="h-cell" style="background:#27ae60;">78</span><span class="h-cell" style="background:#f0c040;">65</span><span class="h-cell" style="background:#27ae60;">80</span><span class="h-cell" style="background:#e67e22;">58</span></div>
+            <div class="h-row"><span class="h-label">华南</span><span class="h-cell" style="background:#27ae60;">82</span><span class="h-cell" style="background:#27ae60;">76</span><span class="h-cell" style="background:#f0c040;">68</span><span class="h-cell" style="background:#e74c3c;">45</span></div>
+            <div class="h-row"><span class="h-label">华北</span><span class="h-cell" style="background:#f0c040;">62</span><span class="h-cell" style="background:#f0c040;">66</span><span class="h-cell" style="background:#e67e22;">55</span><span class="h-cell" style="background:#e74c3c;">42</span></div>
+            <div class="h-row"><span class="h-label">西南</span><span class="h-cell" style="background:#27ae60;">75</span><span class="h-cell" style="background:#f0c040;">68</span><span class="h-cell" style="background:#f0c040;">64</span><span class="h-cell" style="background:#f0c040;">62</span></div>
+          </div>
+          <div class="legend" style="margin-top:10px;gap:4px;font-size:10px;">
+            <span><span class="dot" style="background:#27ae60;"></span>≥75</span>
+            <span><span class="dot" style="background:#f0c040;"></span>60-74</span>
+            <span><span class="dot" style="background:#e67e22;"></span>50-59</span>
+            <span><span class="dot" style="background:#e74c3c;"></span>&lt;50</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-2 section">
+        <div class="card chart-box">
+          <div class="chart-label">Top5 优秀学员</div>
+          <ul class="lb-list">
+            <li><span class="rank top">1</span><span class="name">李梅</span><span class="dept">华东</span><span class="score top">92</span></li>
+            <li><span class="rank top">2</span><span class="name">张伟</span><span class="dept">华南</span><span class="score top">90</span></li>
+            <li><span class="rank top">3</span><span class="name">陈芳</span><span class="dept">华东</span><span class="score top">89</span></li>
+            <li><span class="rank top">4</span><span class="name">周磊</span><span class="dept">西南</span><span class="score top">87</span></li>
+            <li><span class="rank top">5</span><span class="name">吴明</span><span class="dept">华南</span><span class="score top">86</span></li>
+          </ul>
+        </div>
+        <div class="card chart-box">
+          <div class="chart-label" style="color:#e74c3c;">Bottom5 需关注</div>
+          <ul class="lb-list">
+            <li><span class="rank btm">1</span><span class="name">王强</span><span class="dept">华北</span><span class="score btm">42</span></li>
+            <li><span class="rank btm">2</span><span class="name">赵丽</span><span class="dept">西南</span><span class="score btm">52</span></li>
+            <li><span class="rank btm">3</span><span class="name">刘刚</span><span class="dept">华东</span><span class="score btm">55</span></li>
+            <li><span class="rank btm">4</span><span class="name">孙磊</span><span class="dept">华北</span><span class="score btm">57</span></li>
+            <li><span class="rank btm">5</span><span class="name">钱浩</span><span class="dept">华南</span><span class="score btm">59</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="row-2 section">
+        <div class="card chart-box">
+          <div class="chart-label">近12周团队平均分趋势</div>
+          <svg viewBox="0 0 400 180" style="width:100%;max-width:420px;">
+            <polyline points="20,140 55,128 90,115 125,130 160,118 195,105 230,112 265,95 300,100 335,82 370,72" fill="none" stroke="#3d4f6b" stroke-width="2.5"/>
+            <circle cx="20" cy="140" r="4" fill="#3d4f6b"/><circle cx="55" cy="128" r="4" fill="#3d4f6b"/>
+            <circle cx="90" cy="115" r="4" fill="#3d4f6b"/><circle cx="125" cy="130" r="4" fill="#3d4f6b"/>
+            <circle cx="160" cy="118" r="4" fill="#3d4f6b"/><circle cx="195" cy="105" r="4" fill="#3d4f6b"/>
+            <circle cx="230" cy="112" r="4" fill="#3d4f6b"/><circle cx="265" cy="95" r="4" fill="#3d4f6b"/>
+            <circle cx="300" cy="100" r="4" fill="#3d4f6b"/><circle cx="335" cy="82" r="4" fill="#3d4f6b"/>
+            <circle cx="370" cy="72" r="4" fill="#b8976e"/>
+            <line x1="20" y1="150" x2="370" y2="150" stroke="#e8e5df" stroke-width="1"/>
+            <text x="20" y="166" font-size="10" fill="#8999ab">W1</text><text x="55" y="166" font-size="10" fill="#8999ab">W3</text>
+            <text x="90" y="166" font-size="10" fill="#8999ab">W5</text><text x="125" y="166" font-size="10" fill="#8999ab">W7</text>
+            <text x="160" y="166" font-size="10" fill="#8999ab">W9</text><text x="195" y="166" font-size="10" fill="#8999ab">W11</text>
+            <text x="370" y="64" font-size="11" fill="#b8976e" font-weight="700">74</text>
+          </svg>
+        </div>
+        <div class="card" style="padding:16px;background:#fef9f0;border:1px solid #f5e6cc;border-radius:8px;">
+          <div class="chart-label" style="color:#b8976e;">异常提醒</div>
+          <div style="font-size:12px;">
+            <p style="margin-bottom:6px;"><strong>连续3次下降：</strong>王强（48→45→42）华北</p>
+            <p style="margin-bottom:6px;"><strong>超7天未练：</strong>赵丽、刘刚、孙磊</p>
+          </div>
+        </div>
+      </div>
+      <div class="notify">数据范围：全公司（超管视角）</div>
+    </div>
+
+    <!-- Page: Scenarios -->
+    <div class="page" id="page-scenarios">
+      <div class="scene-tab-nav" id="sceneTabNav">
+        <button class="active" data-sub="scenes" onclick="switchSceneTab('scenes',this)">场景管理</button>
+        <button data-sub="knowledge" onclick="switchSceneTab('knowledge',this)">知识库</button>
+        <button data-sub="script" onclick="switchSceneTab('script',this)">话术库</button>
+      </div>
+      <!-- Sub: Scenes -->
+      <div class="scene-sub-page active" id="sub-scenes">
+      <div class="tab-bar" id="industryTabs">
+        <button class="tab active" data-tag="all">全部</button>
+        <button class="tab" data-tag="零售">连锁零售</button>
+        <button class="tab" data-tag="金融">金融保险</button>
+        <button class="tab" data-tag="B2B">B2B SaaS</button>
+        <button class="tab" data-tag="房产">房产中介</button>
+        <button class="tab" data-tag="汽车">汽车4S</button>
+        <button class="tab" data-tag="通用">通用</button>
+        <span style="margin-left:10px;font-size:12px;color:#8999ab;">难度:</span>
+        <button class="tab active" data-tag="all-diff">全部</button>
+        <button class="tab" data-tag="L1">L1</button>
+        <button class="tab" data-tag="L2">L2</button>
+        <button class="tab" data-tag="L3">L3</button>
+        <button class="tab" data-tag="L4">L4</button>
+        <span style="flex:1;"></span>
+        <button class="btn btn-primary" onclick="openSceneDrawer()">+ 新建场景</button>
+      </div>
+      <div class="scene-grid" id="sceneGrid">
+        <!-- Scene cards injected by JS -->
+      </div>
+      </div>
+      <!-- Sub: Knowledge Base -->
+      <div class="scene-sub-page" id="sub-knowledge">
+        <div class="kb-grid" id="kbGrid"></div>
+      </div>
+      <!-- Sub: Script Library -->
+      <div class="scene-sub-page" id="sub-script">
+        <div class="script-toolbar">
+          <input type="text" id="scriptSearch" placeholder="搜索话术..." oninput="renderScriptTable()">
+          <span style="flex:1;"></span>
+          <button class="btn btn-primary btn-sm" onclick="openScriptDrawer()">+ 新建话术</button>
+        </div>
+        <div class="card" style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr><th>话术名</th><th>分类</th><th>适用场景</th><th>创建人</th><th>更新时间</th><th>操作</th></tr>
+            </thead>
+            <tbody id="scriptTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page: Team -->
+    <div class="page" id="page-team">
+      <div class="team-layout">
+        <div class="team-org-tree" id="orgTree">
+          <h4>组织架构</h4>
+          <div class="tree-node active" data-dept="all" onclick="selectDept('all',this)">全公司<span class="node-count">328人</span></div>
+          <div class="tree-node child" data-dept="华东" onclick="selectDept('华东',this)">华东区域<span class="node-count">56人</span></div>
+          <div class="tree-node child" data-dept="华南" onclick="selectDept('华南',this)">华南区域<span class="node-count">42人</span></div>
+          <div class="tree-node child" data-dept="华北" onclick="selectDept('华北',this)">华北区域<span class="node-count">38人</span></div>
+          <div class="tree-node child" data-dept="西南" onclick="selectDept('西南',this)">西南区域<span class="node-count">30人</span></div>
+        </div>
+        <div class="team-main">
+          <div class="team-toolbar">
+            <button class="btn btn-primary btn-sm" onclick="openMemberDrawer()">+ 添加成员</button>
+            <button class="btn btn-outline btn-sm" onclick="showToast('批量导入功能开发中','warn')">批量导入</button>
+            <span style="font-size:11px;color:#8999ab;margin-left:8px;">角色筛选:</span>
+            <div class="role-filter" id="roleFilter">
+              <button class="active" data-role="all" onclick="filterRole('all',this)">全部</button>
+              <button data-role="超管" onclick="filterRole('超管',this)">超管</button>
+              <button data-role="培训经理" onclick="filterRole('培训经理',this)">培训经理</button>
+              <button data-role="区域主管" onclick="filterRole('区域主管',this)">区域主管</button>
+              <button data-role="学员" onclick="filterRole('学员',this)">学员</button>
+            </div>
+          </div>
+          <div class="team-table-wrap">
+            <table class="team-table">
+              <thead>
+                <tr><th>姓名</th><th>工号</th><th>角色</th><th>部门</th><th>加入日期</th><th>陪练次数</th><th>平均分</th><th>状态</th><th>操作</th></tr>
+              </thead>
+              <tbody id="memberTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="rbac-card" id="rbacCard">
+        <div class="rbac-header" onclick="toggleRbac()">
+          <h4>RBAC权限矩阵</h4>
+          <span class="rbac-toggle" id="rbacToggle">&#x25BC;</span>
+        </div>
+        <div class="rbac-body" id="rbacBody">
+          <table class="rbac-table">
+            <thead>
+              <tr><th style="text-align:left;">权限项</th><th>超管</th><th>培训经理</th><th>区域主管</th><th>学员</th></tr>
+            </thead>
+            <tbody>
+              <tr><td style="text-align:left;">查看全公司数据</td><td class="check">&#x2713;</td><td class="check">&#x2713;</td><td class="cross">&#x2717;</td><td class="cross">&#x2717;</td></tr>
+              <tr><td style="text-align:left;">查看本区域数据</td><td class="check">&#x2713;</td><td class="check">&#x2713;</td><td class="check">&#x2713;</td><td class="cross">&#x2717;</td></tr>
+              <tr><td style="text-align:left;">创建/编辑场景</td><td class="check">&#x2713;</td><td class="check">&#x2713;</td><td class="cross">&#x2717;</td><td class="cross">&#x2717;</td></tr>
+              <tr><td style="text-align:left;">下发培训任务</td><td class="check">&#x2713;</td><td class="check">&#x2713;</td><td class="check">&#x2713;</td><td class="cross">&#x2717;</td></tr>
+              <tr><td style="text-align:left;">管理团队成员</td><td class="check">&#x2713;</td><td class="check">&#x2713;</td><td class="cross">&#x2717;</td><td class="cross">&#x2717;</td></tr>
+              <tr><td style="text-align:left;">查看评估报告</td><td class="check">&#x2713;</td><td class="check">&#x2713;</td><td class="check">&#x2713;</td><td class="check">&#x2713;</td></tr>
+              <tr><td style="text-align:left;">导出数据</td><td class="check">&#x2713;</td><td class="check">&#x2713;</td><td class="cross">&#x2717;</td><td class="cross">&#x2717;</td></tr>
+              <tr><td style="text-align:left;">系统配置</td><td class="check">&#x2713;</td><td class="cross">&#x2717;</td><td class="cross">&#x2717;</td><td class="cross">&#x2717;</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page: Tasks -->
+    <div class="page" id="page-tasks">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+        <span style="font-size:12px;color:#8999ab;">任务模板:</span>
+        <select style="padding:6px 10px;border:1px solid #ddd9d2;border-radius:6px;font-size:12px;">
+          <option>新人30天标准计划</option>
+          <option>周常考核</option>
+          <option>月度考核</option>
+        </select>
+        <button class="btn btn-outline btn-sm">复用</button>
+        <span style="flex:1;"></span>
+        <button class="btn btn-primary" onclick="openTaskDrawer()">+ 新建任务</button>
+      </div>
+      <div class="card" style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr><th>任务名</th><th>下发范围</th><th>场景</th><th>DDL</th><th>完成率</th><th>状态</th><th>操作</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>新人Day1破冰训练</strong></td>
+              <td>华东·23人</td>
+              <td>通用-破冰</td>
+              <td>07-02</td>
+              <td><div class="progress-bar"><div class="fill green" style="width:87%;"></div></div> 87%</td>
+              <td><span class="badge-status active">进行中</span></td>
+              <td><button class="btn btn-outline btn-sm" onclick="openTaskDetail()">详情</button> <button class="btn btn-accent btn-sm" onclick="showToast('已发送催办至华东区域（企业微信）','success')">催办</button></td>
+            </tr>
+            <tr>
+              <td><strong>新人Day3需求挖掘</strong></td>
+              <td>华东·23人</td>
+              <td>连锁零售-手机</td>
+              <td>07-05</td>
+              <td><div class="progress-bar"><div class="fill yellow" style="width:52%;"></div></div> 52%</td>
+              <td><span class="badge-status active">进行中</span></td>
+              <td><button class="btn btn-outline btn-sm" onclick="openTaskDetail()">详情</button></td>
+            </tr>
+            <tr>
+              <td><strong>Q2全员考核</strong></td>
+              <td>全公司·328人</td>
+              <td>金融保险-重疾</td>
+              <td style="color:#e74c3c;">06-30</td>
+              <td><div class="progress-bar"><div class="fill green" style="width:91%;"></div></div> 91%</td>
+              <td><span class="badge-status overdue">已逾期</span></td>
+              <td><button class="btn btn-outline btn-sm" onclick="openTaskDetail()">详情</button> <button class="btn btn-accent btn-sm" onclick="showToast('已发送催办至全公司（企业微信）','success')">催办</button></td>
+            </tr>
+            <tr>
+              <td><strong>华东区专项练习</strong></td>
+              <td>华东·56人</td>
+              <td>B2B-物流</td>
+              <td>07-10</td>
+              <td><div class="progress-bar"><div class="fill green" style="width:100%;"></div></div> 100%</td>
+              <td><span class="badge-status done">已完成</span></td>
+              <td><button class="btn btn-outline btn-sm" onclick="openTaskDetail()">详情</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Page: Reports -->
+    <div class="page" id="page-reports">
+      <div class="report-tab-nav" id="reportTabNav">
+        <button class="active" data-rpt="roi" onclick="switchReportTab('roi',this)">ROI看板</button>
+        <button data-rpt="weekly" onclick="switchReportTab('weekly',this)">周报</button>
+        <button data-rpt="monthly" onclick="switchReportTab('monthly',this)">月报</button>
+        <button data-rpt="quarterly" onclick="switchReportTab('quarterly',this)">季报</button>
+      </div>
+
+      <!-- ROI Panel -->
+      <div class="report-panel active" id="rpt-roi">
+        <div class="stat-cards">
+          <div class="card stat-card">
+            <div class="label">新人上手周期</div>
+            <div class="value">22天</div>
+            <div class="delta up">&#9660; 51% 基线45天</div>
+          </div>
+          <div class="card stat-card">
+            <div class="label">培训师人效</div>
+            <div class="value">1:80</div>
+            <div class="delta up">&#9650; 700% 原1:10</div>
+          </div>
+          <div class="card stat-card">
+            <div class="label">年度培训成本</div>
+            <div class="value">68万</div>
+            <div class="delta up">&#9660; 43% 原120万</div>
+          </div>
+          <div class="card stat-card">
+            <div class="label">新人3月留存率</div>
+            <div class="value">82%</div>
+            <div class="delta up">&#9650; 17% 原65%</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="card chart-box" style="min-height:260px;">
+            <div class="chart-label">新人首月成单金额对比（陪练前 vs 陪练后）</div>
+            <div class="dual-bar-chart">
+              <div class="dual-bar-group">
+                <div class="bars">
+                  <div class="bar before" style="height:41px;" title="陪练前 12万"></div>
+                  <div class="bar after" style="height:120px;" title="陪练后 35万"></div>
+                </div>
+                <div class="bar-val">12万→35万</div>
+                <div class="bar-label">华东</div>
+              </div>
+              <div class="dual-bar-group">
+                <div class="bars">
+                  <div class="bar before" style="height:34px;" title="陪练前 10万"></div>
+                  <div class="bar after" style="height:96px;" title="陪练后 28万"></div>
+                </div>
+                <div class="bar-val">10万→28万</div>
+                <div class="bar-label">华南</div>
+              </div>
+              <div class="dual-bar-group">
+                <div class="bars">
+                  <div class="bar before" style="height:27px;" title="陪练前 8万"></div>
+                  <div class="bar after" style="height:75px;" title="陪练后 22万"></div>
+                </div>
+                <div class="bar-val">8万→22万</div>
+                <div class="bar-label">华北</div>
+              </div>
+              <div class="dual-bar-group">
+                <div class="bars">
+                  <div class="bar before" style="height:24px;" title="陪练前 7万"></div>
+                  <div class="bar after" style="height:65px;" title="陪练后 19万"></div>
+                </div>
+                <div class="bar-val">7万→19万</div>
+                <div class="bar-label">西南</div>
+              </div>
+            </div>
+            <div class="legend" style="margin-top:8px;">
+              <span><span class="dot" style="background:#8999ab;"></span>陪练前</span>
+              <span><span class="dot" style="background:#27ae60;"></span>陪练后</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">区域ROI对比</div>
+          <div class="card" style="overflow-x:auto;">
+            <table class="roi-table">
+              <thead>
+                <tr><th>区域</th><th>投入成本</th><th>产出（陪练次数 &times; 时长）</th><th>ROI指数</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>华东</strong></td><td>8万</td><td>1,870次</td><td class="roi-high">23.4</td></tr>
+                <tr><td><strong>华南</strong></td><td>6万</td><td>1,420次</td><td class="roi-high">23.7</td></tr>
+                <tr><td><strong>华北</strong></td><td>5万</td><td>980次</td><td class="roi-mid">19.6</td></tr>
+                <tr><td><strong>西南</strong></td><td>4万</td><td>760次</td><td class="roi-mid">19.0</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="export-btn-row">
+          <button class="btn btn-accent" onclick="showToast('PDF报告导出中，请稍候...','success')">📥 导出PDF报告</button>
+        </div>
+      </div>
+
+      <!-- Weekly Panel -->
+      <div class="report-panel" id="rpt-weekly">
+        <div class="date-picker-row">
+          <span>周报周期：</span>
+          <input type="date" value="2026-06-29">
+          <span class="date-sep">至</span>
+          <input type="date" value="2026-07-05">
+          <span style="font-size:11px;color:#8999ab;">本周</span>
+        </div>
+        <div class="mini-stat-cards">
+          <div class="card mini-stat-card">
+            <div class="label">本周陪练</div>
+            <div class="value">1,247</div>
+          </div>
+          <div class="card mini-stat-card">
+            <div class="label">平均得分</div>
+            <div class="value">72.5</div>
+          </div>
+          <div class="card mini-stat-card">
+            <div class="label">新增学员</div>
+            <div class="value">12</div>
+          </div>
+          <div class="card mini-stat-card">
+            <div class="label">活跃率</div>
+            <div class="value">84%</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">部门完成率</div>
+          <div class="card" style="padding:16px;">
+            <div class="dept-progress">
+              <div class="dept-progress-row">
+                <span class="dept-name">华东</span>
+                <div class="dept-bar-wrap"><div class="dept-bar-fill" style="width:98%;"></div></div>
+                <span class="dept-pct">98%</span>
+              </div>
+              <div class="dept-progress-row">
+                <span class="dept-name">华南</span>
+                <div class="dept-bar-wrap"><div class="dept-bar-fill" style="width:92%;"></div></div>
+                <span class="dept-pct">92%</span>
+              </div>
+              <div class="dept-progress-row">
+                <span class="dept-name">华北</span>
+                <div class="dept-bar-wrap"><div class="dept-bar-fill" style="width:85%;"></div></div>
+                <span class="dept-pct">85%</span>
+              </div>
+              <div class="dept-progress-row">
+                <span class="dept-name">西南</span>
+                <div class="dept-bar-wrap"><div class="dept-bar-fill" style="width:80%;"></div></div>
+                <span class="dept-pct">80%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">自动推送</div>
+          <div class="card" style="padding:14px 18px;">
+            <div class="toggle-group" id="weeklyToggles">
+              <div class="toggle-item">
+                <div class="toggle-switch on" data-channel="wecom" onclick="togglePush(this)"></div>
+                <span>企业微信</span>
+              </div>
+              <div class="toggle-item">
+                <div class="toggle-switch" data-channel="feishu" onclick="togglePush(this)"></div>
+                <span>飞书</span>
+              </div>
+              <div class="toggle-item">
+                <div class="toggle-switch on" data-channel="email" onclick="togglePush(this)"></div>
+                <span>邮箱</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Panel -->
+      <div class="report-panel" id="rpt-monthly">
+        <div class="date-picker-row">
+          <span>月报周期：</span>
+          <input type="month" value="2026-06">
+          <span style="font-size:11px;color:#8999ab;">2026年6月</span>
+        </div>
+        <div class="mini-stat-cards">
+          <div class="card mini-stat-card">
+            <div class="label">本月陪练</div>
+            <div class="value">5,012</div>
+          </div>
+          <div class="card mini-stat-card">
+            <div class="label">平均得分</div>
+            <div class="value">74.1</div>
+          </div>
+          <div class="card mini-stat-card">
+            <div class="label">新增学员</div>
+            <div class="value">48</div>
+          </div>
+          <div class="card mini-stat-card">
+            <div class="label">活跃率</div>
+            <div class="value">86%</div>
+          </div>
+        </div>
+
+        <div class="row-2 section">
+          <div class="card chart-box">
+            <div class="chart-label">近6月团队平均分趋势</div>
+            <svg viewBox="0 0 400 180" style="width:100%;max-width:420px;">
+              <polyline points="30,125 98,108 166,100 234,115 302,95 370,78" fill="none" stroke="#3d4f6b" stroke-width="2.5"/>
+              <circle cx="30" cy="125" r="4" fill="#3d4f6b"/><circle cx="98" cy="108" r="4" fill="#3d4f6b"/>
+              <circle cx="166" cy="100" r="4" fill="#3d4f6b"/><circle cx="234" cy="115" r="4" fill="#3d4f6b"/>
+              <circle cx="302" cy="95" r="4" fill="#3d4f6b"/><circle cx="370" cy="78" r="4" fill="#b8976e"/>
+              <line x1="30" y1="150" x2="370" y2="150" stroke="#e8e5df" stroke-width="1"/>
+              <text x="30" y="168" font-size="10" fill="#8999ab" text-anchor="middle">1月</text>
+              <text x="98" y="168" font-size="10" fill="#8999ab" text-anchor="middle">2月</text>
+              <text x="166" y="168" font-size="10" fill="#8999ab" text-anchor="middle">3月</text>
+              <text x="234" y="168" font-size="10" fill="#8999ab" text-anchor="middle">4月</text>
+              <text x="302" y="168" font-size="10" fill="#8999ab" text-anchor="middle">5月</text>
+              <text x="370" y="168" font-size="10" fill="#b8976e" text-anchor="middle" font-weight="700">6月</text>
+              <text x="370" y="68" font-size="11" fill="#b8976e" font-weight="700">74.1</text>
+            </svg>
+          </div>
+          <div class="card" style="overflow-x:auto;padding:12px;">
+            <div class="chart-label">本月 vs 上月 环比变化</div>
+            <table class="comparison-table">
+              <thead><tr><th>指标</th><th>上月(5月)</th><th>本月(6月)</th><th>环比</th></tr></thead>
+              <tbody>
+                <tr><td>陪练次数</td><td>4,820</td><td>5,012</td><td class="up">↑ 4.0%</td></tr>
+                <tr><td>平均得分</td><td>72.8</td><td>74.1</td><td class="up">↑ 1.3</td></tr>
+                <tr><td>新增学员</td><td>52</td><td>48</td><td class="down">↓ 7.7%</td></tr>
+                <tr><td>活跃率</td><td>83%</td><td>86%</td><td class="up">↑ 3%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">自动推送</div>
+          <div class="card" style="padding:14px 18px;">
+            <div class="toggle-group">
+              <div class="toggle-item">
+                <div class="toggle-switch on" onclick="togglePush(this)"></div>
+                <span>企业微信</span>
+              </div>
+              <div class="toggle-item">
+                <div class="toggle-switch" onclick="togglePush(this)"></div>
+                <span>飞书</span>
+              </div>
+              <div class="toggle-item">
+                <div class="toggle-switch on" onclick="togglePush(this)"></div>
+                <span>邮箱</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quarterly Panel -->
+      <div class="report-panel" id="rpt-quarterly">
+        <div class="date-picker-row">
+          <span>季报周期：</span>
+          <select style="padding:6px 10px;border:1px solid #ddd9d2;border-radius:6px;font-size:12px;font-family:inherit;background:#faf9f7;">
+            <option selected>2026年Q2</option>
+            <option>2026年Q1</option>
+            <option>2025年Q4</option>
+            <option>2025年Q3</option>
+          </select>
+          <span style="font-size:11px;color:#8999ab;">（4月-6月）</span>
+        </div>
+        <div class="mini-stat-cards">
+          <div class="card mini-stat-card">
+            <div class="label">本季陪练</div>
+            <div class="value">14,520</div>
+          </div>
+          <div class="card mini-stat-card">
+            <div class="label">平均得分</div>
+            <div class="value">73.6</div>
+          </div>
+          <div class="card mini-stat-card">
+            <div class="label">新增学员</div>
+            <div class="value">136</div>
+          </div>
+          <div class="card mini-stat-card">
+            <div class="label">活跃率</div>
+            <div class="value">85%</div>
+          </div>
+        </div>
+
+        <div class="row-2 section">
+          <div class="card chart-box">
+            <div class="chart-label">近4季团队平均分趋势</div>
+            <svg viewBox="0 0 400 180" style="width:100%;max-width:420px;">
+              <polyline points="50,118 160,105 270,95 350,80" fill="none" stroke="#3d4f6b" stroke-width="2.5"/>
+              <circle cx="50" cy="118" r="4" fill="#3d4f6b"/><circle cx="160" cy="105" r="4" fill="#3d4f6b"/>
+              <circle cx="270" cy="95" r="4" fill="#3d4f6b"/><circle cx="350" cy="80" r="4" fill="#b8976e"/>
+              <line x1="50" y1="150" x2="350" y2="150" stroke="#e8e5df" stroke-width="1"/>
+              <text x="50" y="168" font-size="10" fill="#8999ab" text-anchor="middle">Q3'25</text>
+              <text x="160" y="168" font-size="10" fill="#8999ab" text-anchor="middle">Q4'25</text>
+              <text x="270" y="168" font-size="10" fill="#8999ab" text-anchor="middle">Q1'26</text>
+              <text x="350" y="168" font-size="10" fill="#b8976e" text-anchor="middle" font-weight="700">Q2'26</text>
+              <text x="350" y="70" font-size="11" fill="#b8976e" font-weight="700">73.6</text>
+            </svg>
+          </div>
+          <div class="card" style="overflow-x:auto;padding:12px;">
+            <div class="chart-label">本季 vs 上季 环比变化</div>
+            <table class="comparison-table">
+              <thead><tr><th>指标</th><th>上季(Q1)</th><th>本季(Q2)</th><th>环比</th></tr></thead>
+              <tbody>
+                <tr><td>陪练次数</td><td>13,800</td><td>14,520</td><td class="up">↑ 5.2%</td></tr>
+                <tr><td>平均得分</td><td>71.2</td><td>73.6</td><td class="up">↑ 2.4</td></tr>
+                <tr><td>新增学员</td><td>145</td><td>136</td><td class="down">↓ 6.2%</td></tr>
+                <tr><td>活跃率</td><td>82%</td><td>85%</td><td class="up">↑ 3%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">自动推送</div>
+          <div class="card" style="padding:14px 18px;">
+            <div class="toggle-group">
+              <div class="toggle-item">
+                <div class="toggle-switch on" onclick="togglePush(this)"></div>
+                <span>企业微信</span>
+              </div>
+              <div class="toggle-item">
+                <div class="toggle-switch" onclick="togglePush(this)"></div>
+                <span>飞书</span>
+              </div>
+              <div class="toggle-item">
+                <div class="toggle-switch on" onclick="togglePush(this)"></div>
+                <span>邮箱</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="closeAllOverlays()"></div>
+
+<!-- Drawer: Scene Editor -->
+<div class="drawer" id="sceneDrawer">
+  <h3><span id="sceneDrawerTitle">新建场景</span><button class="close-btn" onclick="closeAllOverlays()">✕</button></h3>
+  <div class="form-group"><label>场景名称</label><input type="text" id="sceneName" placeholder="如：手机销售"></div>
+  <div class="form-group"><label>行业分类</label><select id="sceneIndustry"><option>连锁零售</option><option>金融保险</option><option>B2B SaaS</option><option>房产中介</option><option>汽车4S</option><option>通用</option></select></div>
+  <div class="form-group"><label>角色数量</label>
+    <div class="role-count" id="roleCount">
+      <div class="rc-btn sel">1</div><div class="rc-btn">2</div><div class="rc-btn">3</div><div class="rc-btn">4</div><div class="rc-btn">5</div>
+    </div>
+  </div>
+  <div class="form-group"><label>难度标签</label><select id="sceneDifficulty"><option>L1 入门型</option><option>L2 犹豫型</option><option>L3 刁钻型</option><option>L4 多人场景</option></select></div>
+  <div class="form-group"><label>角色1：顾客A 角色设定 (Prompt)</label><textarea id="scenePrompt" rows="4">你是一位顾客，正在选购商品…</textarea></div>
+  <div class="form-group"><label>对话目标</label><textarea id="sceneGoal" rows="3">学员需要完成完整销售流程…</textarea></div>
+  <div class="btn-row">
+    <button class="btn btn-outline" onclick="saveScene('draft')">保存草稿</button>
+    <button class="btn btn-primary" onclick="saveScene('publish')">发布</button>
+  </div>
+</div>
+
+<!-- Modal: Deploy Scene -->
+<div class="modal" id="deployModal">
+  <div class="modal-bg" onclick="closeAllOverlays()"></div>
+  <div class="modal-box">
+    <h3>下发场景：<span id="deploySceneName"></span></h3>
+    <p style="font-size:12px;color:#8999ab;margin-bottom:8px;">选择目标部门：</p>
+    <ul class="dept-tree" id="deptTree">
+      <li><input type="checkbox" class="dept-root" data-dept="华东" data-count="23" onchange="updateDeployCount()"> 华东区域（23人）</li>
+      <li class="sub"><input type="checkbox" data-dept="上海门店" data-count="8" onchange="updateDeployCount()"> 上海门店（8人）</li>
+      <li class="sub"><input type="checkbox" data-dept="杭州门店" data-count="7" onchange="updateDeployCount()"> 杭州门店（7人）</li>
+      <li class="sub"><input type="checkbox" data-dept="南京门店" data-count="8" onchange="updateDeployCount()"> 南京门店（8人）</li>
+      <li><input type="checkbox" class="dept-root" data-dept="华南" data-count="18" onchange="updateDeployCount()"> 华南区域（18人）</li>
+      <li><input type="checkbox" class="dept-root" data-dept="华北" data-count="15" onchange="updateDeployCount()"> 华北区域（15人）</li>
+    </ul>
+    <div class="sel-count" id="deployCount">已选择：0个部门，共0人</div>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="closeAllOverlays()">取消</button>
+      <button class="btn btn-accent" onclick="confirmDeploy()">确认下发</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Task Detail -->
+<div class="modal" id="taskDetailModal">
+  <div class="modal-bg" onclick="closeAllOverlays()"></div>
+  <div class="modal-box" style="width:600px;">
+    <h3>新人Day1破冰训练 — 详情</h3>
+    <p style="font-size:12px;color:#8999ab;margin-bottom:10px;">下发范围：华东区域（23人） | DDL：2026-07-02 | 完成率：87%</p>
+    <table class="data-table">
+      <thead><tr><th>姓名</th><th>部门</th><th>状态</th><th>完成时间</th><th>得分</th><th>操作</th></tr></thead>
+      <tbody>
+        <tr><td>李梅</td><td>上海门店</td><td><span class="badge-status done">已完成</span></td><td>07-01</td><td>92</td><td><button class="btn btn-outline btn-sm">查看</button></td></tr>
+        <tr><td>张伟</td><td>杭州门店</td><td><span class="badge-status done">已完成</span></td><td>06-30</td><td>90</td><td><button class="btn btn-outline btn-sm">查看</button></td></tr>
+        <tr><td>陈芳</td><td>上海门店</td><td><span class="badge-status done">已完成</span></td><td>07-01</td><td>89</td><td><button class="btn btn-outline btn-sm">查看</button></td></tr>
+        <tr><td>王强</td><td>南京门店</td><td><span class="badge-status overdue">未完成</span></td><td>--</td><td>--</td><td><button class="btn btn-accent btn-sm" onclick="showToast('已发送催办消息至王强（企业微信）','success')">催办</button></td></tr>
+        <tr><td>赵丽</td><td>杭州门店</td><td><span class="badge-status overdue">未完成</span></td><td>--</td><td>--</td><td><button class="btn btn-accent btn-sm" onclick="showToast('已发送催办消息至赵丽（企业微信）','success')">催办</button></td></tr>
+        <tr><td>刘刚</td><td>南京门店</td><td><span class="badge-status overdue">未完成</span></td><td>--</td><td>--</td><td><button class="btn btn-accent btn-sm" onclick="showToast('已发送催办消息至刘刚（企业微信）','success')">催办</button></td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px;display:flex;align-items:center;gap:10px;">
+      <span style="color:#e74c3c;font-size:12px;">3人未完成</span>
+      <button class="btn btn-accent btn-sm" onclick="showToast('已向3人发送催办（企业微信）','success')">一键催办全部未完成学员</button>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="closeAllOverlays()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Task Drawer (reuses drawer area) -->
+<div class="drawer" id="taskDrawer">
+  <h3><span>新建任务</span><button class="close-btn" onclick="closeAllOverlays()">✕</button></h3>
+  <div class="form-group"><label>任务名称</label><input type="text" placeholder="华东新人7月破冰训练"></div>
+  <div class="form-group"><label>选择场景</label>
+    <div style="border:1px solid #ddd9d2;border-radius:6px;padding:8px;max-height:140px;overflow-y:auto;font-size:12px;">
+      <label style="display:block;padding:3px 0;"><input type="checkbox" checked> 通用-基础破冰（L1）</label>
+      <label style="display:block;padding:3px 0;"><input type="checkbox"> 连锁零售-手机销售（L2）</label>
+      <label style="display:block;padding:3px 0;"><input type="checkbox"> 金融保险-重疾险推介（L3）</label>
+    </div>
+  </div>
+  <div class="form-group"><label>目标对象</label>
+    <div style="font-size:12px;">
+      <label style="display:block;padding:2px 0;"><input type="radio" name="targetType" checked> 按部门下发</label>
+      <label style="display:block;padding:2px 0;margin-left:16px;"><input type="checkbox" checked> 华东区域（23人）</label>
+      <label style="display:block;padding:2px 0;"><input type="radio" name="targetType"> 自定义分组</label>
+      <label style="display:block;padding:2px 0;"><input type="radio" name="targetType"> 指定个人</label>
+    </div>
+  </div>
+  <div class="form-group"><label>DDL</label><input type="date" value="2026-07-05" style="width:100%;padding:8px;border:1px solid #ddd9d2;border-radius:6px;"></div>
+  <div class="btn-row">
+    <button class="btn btn-outline" onclick="closeAllOverlays()">取消</button>
+    <button class="btn btn-primary" onclick="closeAllOverlays();showToast('任务已创建并下发','success')">确认下发</button>
+  </div>
+</div>
+
+<!-- Drawer: Member Editor -->
+<div class="drawer" id="memberDrawer">
+  <h3><span id="memberDrawerTitle">添加成员</span><button class="close-btn" onclick="closeAllOverlays()">✕</button></h3>
+  <div class="form-group"><label>姓名</label><input type="text" id="mName" placeholder="请输入姓名"></div>
+  <div class="form-group"><label>工号</label><input type="text" id="mEmpId" placeholder="请输入工号"></div>
+  <div class="form-group"><label>角色</label><select id="mRole"><option>超管</option><option>培训经理</option><option>区域主管</option><option selected>学员</option></select></div>
+  <div class="form-group"><label>部门</label><select id="mDept"><option>华东</option><option>华南</option><option>华北</option><option>西南</option></select></div>
+  <div class="form-group"><label>邮箱</label><input type="email" id="mEmail" placeholder="请输入邮箱"></div>
+  <div class="form-group"><label>手机号</label><input type="text" id="mPhone" placeholder="请输入手机号"></div>
+  <div class="btn-row">
+    <button class="btn btn-outline" onclick="closeAllOverlays()">取消</button>
+    <button class="btn btn-primary" onclick="saveMember()">保存</button>
+  </div>
+</div>
+
+<!-- Drawer: Knowledge Base Doc List -->
+<div class="drawer" id="kbDocDrawer">
+  <h3><span id="kbDocTitle">文档列表</span><button class="close-btn" onclick="closeAllOverlays()">✕</button></h3>
+  <div class="kb-drawer-list" id="kbDocList"></div>
+</div>
+
+<!-- Drawer: Script Editor -->
+<div class="drawer" id="scriptDrawer">
+  <h3><span id="scriptDrawerTitle">新建话术</span><button class="close-btn" onclick="closeAllOverlays()">✕</button></h3>
+  <div class="form-group"><label>话术名称</label><input type="text" id="scName" placeholder="请输入话术名称"></div>
+  <div class="form-group"><label>分类</label><select id="scCat"><option>异议处理</option><option>FABE介绍</option><option>SPIN提问</option><option>逼单话术</option><option>行业知识</option></select></div>
+  <div class="form-group"><label>适用场景</label><input type="text" id="scScene" placeholder="如：零售-手机销售"></div>
+  <div class="form-group"><label>话术内容</label><textarea id="scContent" rows="5" placeholder="请输入话术详细内容..."></textarea></div>
+  <div class="btn-row">
+    <button class="btn btn-outline" onclick="closeAllOverlays()">取消</button>
+    <button class="btn btn-primary" onclick="saveScript()">保存</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========== Login ========== */
+function doLogin() {
+  const btn = document.getElementById('loginBtn');
+  btn.textContent = '登录中...';
+  btn.classList.add('loading');
+  setTimeout(() => {
+    document.body.classList.remove('login');
+  }, 2000);
+}
+
+/* ========== Data ========== */
+const sceneData = [
+  { icon:'📱', name:'手机销售', industry:'零售', roles:'1角色', diff:'L2', status:'dep', deptInfo:'已下发3部门' },
+  { icon:'💻', name:'笔记本销售', industry:'零售', roles:'2角色', diff:'L3', status:'pub', deptInfo:'' },
+  { icon:'🏠', name:'家电销售', industry:'零售', roles:'1角色', diff:'L1', status:'draft', deptInfo:'' },
+  { icon:'👔', name:'重疾险推介', industry:'金融', roles:'1角色', diff:'L3', status:'pub', deptInfo:'' },
+  { icon:'🍲', name:'餐饮加盟招商', industry:'通用', roles:'2角色', diff:'L2', status:'draft', deptInfo:'' },
+  { icon:'📦', name:'物流方案销售', industry:'B2B', roles:'3角色', diff:'L4', status:'dep', deptInfo:'已下发5部门' },
+];
+
+const memberData = [
+  { name:'张明', empId:'EMP001', role:'超管', dept:'华东', joinDate:'2026-01-15', sessions:48, avgScore:92, online:true },
+  { name:'李芳', empId:'EMP002', role:'培训经理', dept:'华东', joinDate:'2026-02-01', sessions:32, avgScore:88, online:true },
+  { name:'王磊', empId:'EMP003', role:'区域主管', dept:'华南', joinDate:'2026-03-10', sessions:25, avgScore:85, online:false },
+  { name:'陈静', empId:'EMP004', role:'区域主管', dept:'华北', joinDate:'2026-01-20', sessions:28, avgScore:82, online:true },
+  { name:'刘洋', empId:'EMP005', role:'学员', dept:'华东', joinDate:'2026-04-05', sessions:55, avgScore:78, online:true },
+  { name:'赵强', empId:'EMP006', role:'学员', dept:'华南', joinDate:'2026-04-12', sessions:38, avgScore:74, online:true },
+  { name:'孙丽', empId:'EMP007', role:'区域主管', dept:'西南', joinDate:'2026-02-18', sessions:22, avgScore:86, online:false },
+  { name:'周伟', empId:'EMP008', role:'学员', dept:'华北', joinDate:'2026-05-01', sessions:42, avgScore:72, online:true },
+  { name:'吴婷', empId:'EMP009', role:'培训经理', dept:'西南', joinDate:'2026-03-20', sessions:30, avgScore:90, online:true },
+  { name:'郑浩', empId:'EMP010', role:'学员', dept:'华东', joinDate:'2026-05-15', sessions:18, avgScore:65, online:false },
+];
+
+let currentDept = 'all';
+let currentRole = 'all';
+let editingMemberId = null;
+
+const kbCategories = [
+  { id:'kb1', icon:'💬', name:'异议处理话术库', count:12, desc:'认同法/价值转化法/对比法/恐惧法', docs:['认同法-先认可再引导','价值转化法-价格转向价值','对比法-竞品差异化应对','恐惧法-不行动的后果','L型话术-价格异议转机','示弱法-我不是专家但...','反问法-您的顾虑是？','第三方背书-客户案例分享','延迟满足-先体验再决策','预算重分配-ROI计算','关系型异议-信任建立','决策人异议-推进决策链路'] },
+  { id:'kb2', icon:'📋', name:'产品FABE模板', count:8, desc:'特性/优势/利益/证据话术模板', docs:['手机FABE-芯片性能','笔记本FABE-轻薄续航','家电FABE-智能联动','重疾险FABE-保障范围','SaaS FABE-降本增效','房产FABE-地段价值','汽车FABE-安全配置','餐饮FABE-供应链优势'] },
+  { id:'kb3', icon:'❓', name:'SPIN提问法', count:6, desc:'现状/难点/暗示/需求-效益四类问题', docs:['现状问题清单','难点问题挖掘','暗示问题-放大痛点','需求-效益确认','SPIN综合实战话术','B2B场景SPIN应用'] },
+  { id:'kb4', icon:'🔥', name:'逼单话术', count:5, desc:'限时/限量/从众/升级策略', docs:['限时促销逼单','限量稀缺营造','从众效应-大家都在买','方案升级-加一点预算','假设成交法'] },
+  { id:'kb5', icon:'📚', name:'行业知识库', count:15, desc:'各行业产品知识/竞品对比/客户画像', docs:['零售行业知识图谱','金融保险术语表','B2B SaaS客户决策链','房产交易流程','汽车4S销售流程','零售竞品对比表','保险竞品条款对比','SaaS竞品功能矩阵','各行业客户画像模板','异议处理行业差异','连锁门店标准化SOP','金融合规销售要点','B2B采购流程解析','新能源汽车知识','二手房税费计算'] },
+  { id:'kb6', icon:'🤖', name:'角色Prompt模板', count:20, desc:'各场景AI顾客角色设定模板', docs:['友好型顾客Prompt','犹豫型顾客Prompt','刁钻型顾客Prompt','夫妻决策双人Prompt','同事决策三人Prompt','家长型顾客Prompt','技术型顾客Prompt','价格敏感型Prompt','品牌忠诚型Prompt','初次购买型Prompt','复购升级型Prompt','电销场景Prompt','门店接待Prompt','上门拜访Prompt','线上咨询Prompt','投诉处理Prompt','以旧换新Prompt','团购场景Prompt','VIP客户Prompt','跨境销售Prompt'] },
+];
+
+const scriptData = [
+  { name:'价格异议L型转化', cat:'异议处理', scene:'零售-手机销售', creator:'张明', time:'2026-06-28' },
+  { name:'竞品对比回应', cat:'异议处理', scene:'金融保险', creator:'李芳', time:'2026-06-25' },
+  { name:'FABE-旗舰手机', cat:'FABE介绍', scene:'零售-手机销售', creator:'张明', time:'2026-06-20' },
+  { name:'SPIN需求挖掘', cat:'SPIN提问', scene:'B2B SaaS', creator:'王磊', time:'2026-06-18' },
+  { name:'限时逼单话术', cat:'逼单话术', scene:'通用', creator:'李芳', time:'2026-06-15' },
+  { name:'重疾险FABE', cat:'FABE介绍', scene:'金融保险', creator:'吴婷', time:'2026-06-12' },
+  { name:'从众效应逼单', cat:'逼单话术', scene:'房产中介', creator:'李芳', time:'2026-06-10' },
+];
+
+/* ========== Team Management ========== */
+function renderMembers() {
+  let data = memberData;
+  if (currentDept !== 'all') data = data.filter(m => m.dept === currentDept);
+  if (currentRole !== 'all') data = data.filter(m => m.role === currentRole);
+  document.getElementById('memberTbody').innerHTML = data.map(m =>
+    `<tr>
+      <td><strong>${m.name}</strong></td>
+      <td>${m.empId}</td>
+      <td>${m.role}</td>
+      <td>${m.dept}</td>
+      <td>${m.joinDate}</td>
+      <td>${m.sessions}</td>
+      <td>${m.avgScore}</td>
+      <td><span class="${m.online?'status-online':'status-offline'}">${m.online?'👤 在线':'⏸ 离线'}</span></td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="editMember('${m.empId}')">编辑</button>
+        <button class="btn btn-accent btn-sm" onclick="disableMember('${m.empId}')">禁用</button>
+      </td>
+    </tr>`
+  ).join('');
+}
+
+function selectDept(dept, el) {
+  currentDept = dept;
+  document.querySelectorAll('#orgTree .tree-node').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  renderMembers();
+}
+
+function filterRole(role, el) {
+  currentRole = role;
+  document.querySelectorAll('#roleFilter button').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderMembers();
+}
+
+function openMemberDrawer(empId) {
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('memberDrawer').classList.add('show');
+  if (empId) {
+    document.getElementById('memberDrawerTitle').textContent = '编辑成员';
+    const m = memberData.find(x => x.empId === empId);
+    if (m) {
+      document.getElementById('mName').value = m.name;
+      document.getElementById('mEmpId').value = m.empId;
+      document.getElementById('mRole').value = m.role;
+      document.getElementById('mDept').value = m.dept;
+      document.getElementById('mEmail').value = m.name.toLowerCase() + '@company.com';
+      document.getElementById('mPhone').value = '1380000' + m.empId.replace('EMP','');
+      editingMemberId = empId;
+    }
+  } else {
+    document.getElementById('memberDrawerTitle').textContent = '添加成员';
+    document.getElementById('mName').value = '';
+    document.getElementById('mEmpId').value = '';
+    document.getElementById('mRole').value = '学员';
+    document.getElementById('mDept').value = '华东';
+    document.getElementById('mEmail').value = '';
+    document.getElementById('mPhone').value = '';
+    editingMemberId = null;
+  }
+}
+
+function editMember(empId) { openMemberDrawer(empId); }
+
+function saveMember() {
+  const name = document.getElementById('mName').value;
+  const empId = document.getElementById('mEmpId').value;
+  const role = document.getElementById('mRole').value;
+  const dept = document.getElementById('mDept').value;
+  if (!name || !empId) { showToast('请填写姓名和工号','warn'); return; }
+  if (editingMemberId) {
+    const m = memberData.find(x => x.empId === editingMemberId);
+    if (m) { m.name = name; m.empId = empId; m.role = role; m.dept = dept; }
+  } else {
+    memberData.push({ name, empId, role, dept, joinDate:'2026-07-01', sessions:0, avgScore:0, online:false });
+  }
+  closeAllOverlays();
+  showToast('成员信息已保存', 'success');
+  renderMembers();
+}
+
+function disableMember(empId) {
+  showToast('成员 ' + empId + ' 已被禁用', 'success');
+}
+
+function toggleRbac() {
+  document.getElementById('rbacBody').classList.toggle('collapsed');
+  document.getElementById('rbacToggle').classList.toggle('collapsed');
+}
+
+/* ========== Knowledge Base ========== */
+function renderKB() {
+  document.getElementById('kbGrid').innerHTML = kbCategories.map(k =>
+    `<div class="card kb-card" onclick="openKbDrawer('${k.id}')">
+      <div class="kb-icon">${k.icon}</div>
+      <div class="kb-name">${k.name}</div>
+      <div class="kb-count">${k.count}篇文档</div>
+      <div class="kb-desc">${k.desc}</div>
+    </div>`
+  ).join('');
+}
+
+function openKbDrawer(kbId) {
+  const cat = kbCategories.find(k => k.id === kbId);
+  if (!cat) return;
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('kbDocDrawer').classList.add('show');
+  document.getElementById('kbDocTitle').textContent = cat.name + '（' + cat.count + '篇）';
+  document.getElementById('kbDocList').innerHTML = cat.docs.map((d, i) =>
+    `<div class="kb-item">
+      <span class="kb-item-title">📄 ${d}</span>
+      <span class="kb-item-meta">${i === 0 ? '最近更新 2026-06-30' : ''}</span>
+    </div>`
+  ).join('');
+}
+
+/* ========== Script Library ========== */
+function renderScriptTable() {
+  const q = document.getElementById('scriptSearch').value.toLowerCase();
+  const data = q ? scriptData.filter(s => s.name.toLowerCase().includes(q) || s.cat.toLowerCase().includes(q) || s.scene.toLowerCase().includes(q)) : scriptData;
+  document.getElementById('scriptTbody').innerHTML = data.map(s =>
+    `<tr>
+      <td><strong>${s.name}</strong></td>
+      <td>${s.cat}</td>
+      <td>${s.scene}</td>
+      <td>${s.creator}</td>
+      <td>${s.time}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="editScript('${s.name}')">编辑</button>
+        <button class="btn btn-accent btn-sm" onclick="showToast('话术已删除','success')">删除</button>
+      </td>
+    </tr>`
+  ).join('');
+}
+
+function openScriptDrawer(name) {
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('scriptDrawer').classList.add('show');
+  if (name) {
+    document.getElementById('scriptDrawerTitle').textContent = '编辑话术';
+    const s = scriptData.find(x => x.name === name);
+    if (s) {
+      document.getElementById('scName').value = s.name;
+      document.getElementById('scCat').value = s.cat;
+      document.getElementById('scScene').value = s.scene;
+    }
+  } else {
+    document.getElementById('scriptDrawerTitle').textContent = '新建话术';
+    document.getElementById('scName').value = '';
+    document.getElementById('scCat').value = '异议处理';
+    document.getElementById('scScene').value = '';
+    document.getElementById('scContent').value = '';
+  }
+}
+
+function editScript(name) { openScriptDrawer(name); }
+
+function saveScript() {
+  const name = document.getElementById('scName').value;
+  if (!name) { showToast('请输入话术名称','warn'); return; }
+  const exists = scriptData.find(s => s.name === name);
+  if (exists) {
+    exists.cat = document.getElementById('scCat').value;
+    exists.scene = document.getElementById('scScene').value;
+    exists.time = '2026-07-01';
+  } else {
+    scriptData.unshift({
+      name, cat: document.getElementById('scCat').value,
+      scene: document.getElementById('scScene').value,
+      creator: '当前用户', time: '2026-07-01'
+    });
+  }
+  closeAllOverlays();
+  showToast('话术已保存', 'success');
+  renderScriptTable();
+}
+
+/* ========== Scene Sub-Tab ========== */
+function switchSceneTab(sub, el) {
+  document.querySelectorAll('#sceneTabNav button').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.scene-sub-page').forEach(p => p.classList.remove('active'));
+  document.getElementById('sub-' + sub).classList.add('active');
+}
+
+/* ========== Scene Rendering ========== */
+function statusLabel(s) {
+  if (s==='draft') return '<span class="sc-status draft">草稿</span>';
+  if (s==='pub') return '<span class="sc-status pub">已发布</span>';
+  if (s==='dep') return '<span class="sc-status dep">已下发</span>';
+  return '';
+}
+
+function statusActions(s, name) {
+  let html = '';
+  html += '<button class="btn btn-outline btn-sm" onclick="openSceneDrawer(\''+name+'\')">编辑</button>';
+  if (s==='draft' || s==='pub') html += ' <button class="btn btn-primary btn-sm" onclick="publishScene(\''+name+'\')">发布</button>';
+  if (s==='pub' || s==='dep') html += ' <button class="btn btn-accent btn-sm" onclick="openDeployModal(\''+name+'\')">下发</button>';
+  return html;
+}
+
+let sceneFilter = { industry:'all', diff:'all-diff' };
+
+function renderScenes() {
+  const grid = document.getElementById('sceneGrid');
+  let filtered = sceneData;
+  if (sceneFilter.industry !== 'all') {
+    filtered = filtered.filter(s => s.industry === sceneFilter.industry);
+  }
+  if (sceneFilter.diff !== 'all-diff') {
+    filtered = filtered.filter(s => s.diff === sceneFilter.diff);
+  }
+  grid.innerHTML = filtered.map(s => 
+    '<div class="card scene-card">'+
+      '<div class="sc-icon">'+s.icon+'</div>'+
+      '<div class="sc-name">'+s.name+'</div>'+
+      '<div class="sc-tags"><span>'+s.industry+'</span><span class="tag-diff">'+s.roles+' '+s.diff+'</span></div>'+
+      statusLabel(s.status)+
+      (s.deptInfo ? '<div style="font-size:10px;color:#16a34a;margin-bottom:6px;">'+s.deptInfo+'</div>' : '')+
+      '<div class="sc-actions">'+statusActions(s.status, s.name)+'</div>'+
+    '</div>'
+  ).join('');
+}
+
+/* ========== Navigation ========== */
+const pageMap = {
+  dashboard: { title: '团队看板', pageId: 'page-dashboard' },
+  scenarios: { title: '场景管理', pageId: 'page-scenarios' },
+  team:      { title: '团队管理', pageId: 'page-team' },
+  tasks:     { title: '任务管理', pageId: 'page-tasks' },
+  reports:   { title: '培训报告', pageId: 'page-reports' },
+};
+
+document.getElementById('sideNav').addEventListener('click', function(e) {
+  const li = e.target.closest('li');
+  if (!li) return;
+  const page = li.dataset.page;
+  if (!page) return;
+  document.querySelectorAll('#sideNav li').forEach(l => l.classList.remove('active'));
+  li.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const info = pageMap[page];
+  if (info) {
+    document.getElementById(info.pageId).classList.add('active');
+    document.getElementById('topbarTitle').textContent = info.title;
+  }
+});
+
+/* ========== Scene Industry Tabs ========== */
+document.getElementById('industryTabs').addEventListener('click', function(e) {
+  const btn = e.target.closest('button.tab');
+  if (!btn) return;
+  const tag = btn.dataset.tag;
+  if (tag === 'all' || ['零售','金融','B2B','房产','汽车','通用'].includes(tag)) {
+    // industry tab
+    document.querySelectorAll('#industryTabs button.tab').forEach(b => {
+      if (['all','零售','金融','B2B','房产','汽车','通用'].includes(b.dataset.tag)) b.classList.remove('active');
+    });
+    btn.classList.add('active');
+    sceneFilter.industry = tag;
+  } else {
+    // diff tab
+    document.querySelectorAll('#industryTabs button.tab').forEach(b => {
+      if (['all-diff','L1','L2','L3','L4'].includes(b.dataset.tag)) b.classList.remove('active');
+    });
+    btn.classList.add('active');
+    sceneFilter.diff = tag;
+  }
+  renderScenes();
+});
+
+/* ========== Overlays ========== */
+function closeAllOverlays() {
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('sceneDrawer').classList.remove('show');
+  document.getElementById('deployModal').classList.remove('show');
+  document.getElementById('taskDetailModal').classList.remove('show');
+  document.getElementById('taskDrawer').classList.remove('show');
+  document.getElementById('memberDrawer').classList.remove('show');
+  document.getElementById('kbDocDrawer').classList.remove('show');
+  document.getElementById('scriptDrawer').classList.remove('show');
+}
+
+function openSceneDrawer(name) {
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('sceneDrawer').classList.add('show');
+  document.getElementById('sceneDrawerTitle').textContent = name ? '编辑场景：'+name : '新建场景';
+  if (name) {
+    document.getElementById('sceneName').value = name;
+  } else {
+    document.getElementById('sceneName').value = '';
+  }
+}
+
+function openDeployModal(name) {
+  closeAllOverlays();
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('deployModal').classList.add('show');
+  document.getElementById('deploySceneName').textContent = name;
+  // reset checkboxes
+  document.querySelectorAll('#deptTree input').forEach(cb => cb.checked = false);
+  document.getElementById('deployCount').textContent = '已选择：0个部门，共0人';
+}
+
+function openTaskDrawer() {
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('taskDrawer').classList.add('show');
+}
+
+function openTaskDetail() {
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('taskDetailModal').classList.add('show');
+}
+
+function updateDeployCount() {
+  const checks = document.querySelectorAll('#deptTree input:checked');
+  let depts = new Set();
+  let total = 0;
+  checks.forEach(cb => {
+    depts.add(cb.dataset.dept);
+    total += parseInt(cb.dataset.count) || 0;
+  });
+  document.getElementById('deployCount').textContent = '已选择：'+depts.size+'个部门，共'+total+'人';
+}
+
+function confirmDeploy() {
+  const deptCount = document.getElementById('deployCount').textContent;
+  closeAllOverlays();
+  showToast('已下发'+deptCount.replace('已选择：',''), 'success');
+}
+
+function saveScene(type) {
+  const name = document.getElementById('sceneName').value || '未命名场景';
+  closeAllOverlays();
+  const msg = type === 'draft' ? '场景已保存为草稿' : '场景已发布，全公司可见';
+  showToast(msg, 'success');
+}
+
+function publishScene(name) {
+  const found = sceneData.find(s => s.name === name);
+  if (found) found.status = 'pub';
+  renderScenes();
+  showToast('场景「'+name+'」已发布', 'success');
+}
+
+/* ========== Toast ========== */
+let toastTimer;
+function showToast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + (type||'');
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+/* ========== Bell Toggle ========== */
+document.getElementById('bellBtn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  document.getElementById('alertPanel').classList.toggle('show');
+});
+document.addEventListener('click', function() {
+  document.getElementById('alertPanel').classList.remove('show');
+});
+
+/* ========== Role Count Selector ========== */
+document.getElementById('roleCount').addEventListener('click', function(e) {
+  const btn = e.target.closest('.rc-btn');
+  if (!btn) return;
+  document.querySelectorAll('#roleCount .rc-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+});
+
+/* ========== Report Tab Switching ========== */
+function switchReportTab(rpt, el) {
+  document.querySelectorAll('#reportTabNav button').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#page-reports .report-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('rpt-' + rpt).classList.add('active');
+}
+
+function togglePush(el) {
+  el.classList.toggle('on');
+  const channel = el.dataset.channel || '';
+  const status = el.classList.contains('on') ? '已开启' : '已关闭';
+  const nameMap = { wecom: '企业微信', feishu: '飞书', email: '邮箱' };
+  const name = nameMap[channel] || channel;
+  showToast(name + '自动推送' + status, 'success');
+}
+
+/* ========== Init ========== */
+renderScenes();
+renderMembers();
+renderKB();
+renderScriptTable();
+</script>
+
+</body>
+</html>

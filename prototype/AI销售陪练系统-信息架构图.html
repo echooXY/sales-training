@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI销售陪练系统 · 信息架构图</title>
+<style>
+  :root{
+    --primary:#3d4f6b;
+    --accent:#b8976e;
+    --bg:#f7f8fa;
+    --card:#ffffff;
+    --line:#d8dde6;
+    --text:#2c3440;
+    --muted:#7a8494;
+    --serif:"Songti SC","SimSun","Noto Serif SC",Georgia,serif;
+    --sans:"PingFang SC","Microsoft YaHei","Noto Sans SC",-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.6;
+    padding:32px 20px 60px;
+  }
+  header{
+    max-width:1080px;margin:0 auto 8px;text-align:center;
+  }
+  header h1{
+    font-family:var(--serif);
+    font-size:30px;font-weight:700;color:var(--primary);
+    letter-spacing:1px;
+  }
+  header .sub{
+    color:var(--muted);font-size:14px;margin-top:6px;
+  }
+  .legend{
+    max-width:1080px;margin:18px auto 28px;
+    background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:14px 20px;display:flex;flex-wrap:wrap;gap:18px;align-items:center;
+    font-size:13px;color:var(--muted);
+  }
+  .legend .item{display:flex;align-items:center;gap:7px;}
+  .legend .dot{width:14px;height:14px;border-radius:4px;display:inline-block;}
+  .dot.domain{background:var(--primary);}
+  .dot.entity{background:var(--accent);}
+  .dot.field{background:#eef1f6;border:1px solid var(--line);}
+  .legend .note{margin-left:auto;color:var(--accent);font-weight:600;}
+
+  .tree{max-width:1080px;margin:0 auto;}
+  .domain{
+    background:var(--card);border:1px solid var(--line);border-left:5px solid var(--primary);
+    border-radius:10px;margin-bottom:14px;overflow:hidden;
+    transition:box-shadow .2s,transform .2s;
+  }
+  .domain:hover{box-shadow:0 6px 20px rgba(61,79,107,.12);}
+  .domain>.head{
+    display:flex;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;
+    user-select:none;
+  }
+  .domain>.head .idx{
+    background:var(--primary);color:#fff;font-size:13px;font-weight:700;
+    width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+  }
+  .domain>.head .title{
+    font-family:var(--serif);font-size:19px;font-weight:700;color:var(--primary);flex:1;
+  }
+  .domain>.head .toggle{
+    color:var(--muted);font-size:13px;flex:0 0 auto;transition:transform .25s;
+  }
+  .domain.collapsed>.head .toggle{transform:rotate(-90deg);}
+  .domain>.body{
+    border-top:1px solid var(--line);padding:6px 20px 16px;
+    display:grid;gap:10px;
+  }
+  .domain.collapsed>.body{display:none;}
+
+  .entity{
+    background:#fbfcfe;border:1px solid var(--line);border-radius:8px;
+    padding:12px 16px;position:relative;
+  }
+  .entity::before{
+    content:"";position:absolute;left:-14px;top:22px;width:14px;height:1px;background:var(--line);
+  }
+  .entity>.ename{
+    font-weight:700;color:var(--accent);font-size:15px;display:flex;align-items:center;gap:8px;
+  }
+  .entity>.ename .en{color:var(--muted);font-weight:400;font-size:12px;font-family:var(--sans);}
+  .fields{margin-top:8px;display:grid;gap:5px;}
+  .field{
+    display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);
+    padding-left:14px;position:relative;
+  }
+  .field::before{
+    content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;
+    background:var(--line);
+  }
+  .field .k{font-weight:600;color:var(--primary);flex:0 0 auto;}
+  .field .tag{
+    font-size:11px;padding:1px 6px;border-radius:4px;background:#eef1f6;color:var(--muted);
+    flex:0 0 auto;font-weight:600;
+  }
+  .field .tag.pk{background:#e7eef7;color:#2f5d8a;}
+  .field .tag.fk{background:#f3ece2;color:#8a6a3f;}
+  .field .tag.json{background:#eef3ee;color:#4a7a52;}
+  .field .desc{color:var(--muted);}
+  .field .fe{
+    display:block;margin-top:2px;font-size:12px;color:var(--accent);
+    background:#faf6f1;border-left:3px solid var(--accent);padding:3px 8px;border-radius:0 4px 4px 0;
+  }
+
+  footer{
+    max-width:1080px;margin:34px auto 0;background:var(--card);
+    border:1px solid var(--line);border-radius:10px;padding:18px 22px;
+  }
+  footer h3{font-family:var(--serif);color:var(--primary);font-size:16px;margin-bottom:10px;}
+  footer .map{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;font-size:13px;}
+  footer .map .row{display:flex;align-items:center;gap:8px;color:var(--text);}
+  footer .map .arrow{color:var(--accent);font-weight:700;}
+  footer .map .l{color:var(--primary);font-weight:600;}
+  footer .map .r{color:var(--muted);}
+
+  @media(max-width:640px){
+    body{padding:20px 12px 40px;}
+    header h1{font-size:23px;}
+    .domain>.head{padding:13px 14px;}
+    .domain>.body{padding:6px 12px 14px;}
+    .entity{padding:10px 12px;}
+    .legend{font-size:12px;gap:12px;}
+    .legend .note{margin-left:0;width:100%;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>AI销售陪练系统 · 信息架构图</h1>
+  <div class="sub">8 大业务域 · 字段级数据模型 · 前后端映射标注</div>
+</header>
+
+<div class="legend">
+  <div class="item"><span class="dot domain"></span>业务域（顶层）</div>
+  <div class="item"><span class="dot entity"></span>数据实体</div>
+  <div class="item"><span class="dot field"></span>字段 / 属性</div>
+  <div class="item"><span class="tag pk">PK</span>主键 <span class="tag fk">FK</span>外键 <span class="tag json">JSON</span>结构化</div>
+  <div class="note">点击任意业务域可展开 / 折叠</div>
+</div>
+
+<div class="tree" id="tree"></div>
+
+<footer>
+  <h3>两图对应关系</h3>
+  <div class="map">
+    <div class="row"><span class="l">知识库域</span><span class="arrow">↔</span><span class="r">话术提示（陪练执行）</span></div>
+    <div class="row"><span class="l">任务与激励域</span><span class="arrow">↔</span><span class="r">任务 Tab</span></div>
+    <div class="row"><span class="l">评估域</span><span class="arrow">↔</span><span class="r">回顾 Tab</span></div>
+    <div class="row"><span class="l">用户域</span><span class="arrow">↔</span><span class="r">我的 Tab / 登录</span></div>
+    <div class="row"><span class="l">陪练会话域</span><span class="arrow">↔</span><span class="r">陪练执行（对话界面）</span></div>
+    <div class="row"><span class="l">角色与场景域</span><span class="arrow">↔</span><span class="r">场景选择 / 角色面板</span></div>
+    <div class="row"><span class="l">数据统计域</span><span class="arrow">↔</span><span class="r">经理视图 / 对比分析</span></div>
+    <div class="row"><span class="l">系统配置域</span><span class="arrow">↔</span><span class="r">后台管理 / 培训计划</span></div>
+  </div>
+</footer>
+
+<script>
+const DATA = [
+  { idx:1, name:"用户域", entities:[
+    { name:"用户", en:"User", fields:[
+      {k:"user_id",tag:"pk",desc:"主键"},
+      {k:"工号",en:"employee_id"},
+      {k:"姓名"},
+      {k:"手机号"},
+      {k:"密码",desc:"加密存储"},
+      {k:"角色",desc:"学员/经理/管理员"},
+      {k:"所属公司/门店ID",tag:"fk"},
+      {k:"头像URL"},
+      {k:"最后登录时间"},
+      {k:"账号状态",desc:"启用/禁用"},
+      {fe:"前端使用：登录页、“我的”Tab"}
+    ]},
+    { name:"公司/门店", en:"Company", fields:[
+      {k:"company_id",tag:"pk"},
+      {k:"名称"},
+      {k:"所属行业"},
+      {k:"配置参数"}
+    ]},
+    { name:"权限", en:"Permission", fields:[
+      {k:"permission_id",tag:"pk"},
+      {k:"名称",desc:'如 "training:assign_task"'}
+    ]},
+    { name:"学员统计数据", en:"UserStat", fields:[
+      {k:"user_id",tag:"fk"},
+      {k:"总练习次数"},
+      {k:"总练习时长"},
+      {k:"各难度平均分",desc:"冗余字段"},
+      {k:"各维度平均分"},
+      {k:"近30天练习次数数组",tag:"json"},
+      {fe:"前端使用：“回顾”Tab → 个人档案、难度表现、维度评分、折线图"}
+    ]},
+    { name:"登录记录", en:"LoginRecord", fields:[
+      {k:"record_id",tag:"pk"},
+      {k:"user_id",tag:"fk"},
+      {k:"登录时间"},
+      {k:"设备信息"},
+      {k:"IP"},
+      {fe:"前端使用：“我的”Tab → 账号安全（登录设备列表）"}
+    ]}
+  ]},
+  { idx:2, name:"陪练会话域", entities:[
+    { name:"陪练会话", en:"TrainingSession", fields:[
+      {k:"session_id",tag:"pk"},
+      {k:"user_id",tag:"fk"},
+      {k:"场景ID",tag:"fk"},
+      {k:"难度",desc:"easy/medium/hard/hell"},
+      {k:"开始时间"},
+      {k:"结束时间"},
+      {k:"状态",desc:"active/completed/abandoned"},
+      {k:"当前阶段",desc:"破冰/挖掘/推荐/异议/逼单"},
+      {k:"阶段步骤清单",tag:"json",desc:"存储TodoWrite项"},
+      {fe:"前端使用：“练习”Tab(当前会话)、“回顾”Tab（历史会话列表）"}
+    ]},
+    { name:"对话消息", en:"Message", fields:[
+      {k:"message_id",tag:"pk"},
+      {k:"session_id",tag:"fk"},
+      {k:"发送者角色",desc:"lead/customer_a/user"},
+      {k:"消息内容",desc:"文本"},
+      {k:"时间戳"},
+      {fe:"前端使用：“练习”Tab → 对话消息区、“回顾”Tab → 历史报告内对话摘要"}
+    ]}
+  ]},
+  { idx:3, name:"角色与场景域", entities:[
+    { name:"场景库", en:"Scenario", fields:[
+      {k:"scenario_id",tag:"pk"},
+      {k:"名称",desc:'如“价格异议处理”'},
+      {k:"描述"},
+      {k:"难度、类别",desc:"price_objection/competitor/multi_decision"},
+      {k:"场景提示词",desc:"prompt，供后端生成角色"},
+      {k:"是否内置",en:"is_builtin"},
+      {fe:"前端使用：“练习”Tab → 场景选择"}
+    ]},
+    { name:"角色模板", en:"RoleTemplate", fields:[
+      {k:"template_id",tag:"pk"},
+      {k:"名称"},
+      {k:"性格描述"},
+      {k:"典型话术示例"},
+      {k:"所属场景ID或通用",tag:"fk"},
+      {fe:"前端使用：“练习”Tab → 角色面板（显示性格标签）"}
+    ]},
+    { name:"会话中的角色实例", en:"SessionRole", fields:[
+      {k:"role_instance_id",tag:"pk"},
+      {k:"session_id",tag:"fk"},
+      {k:"角色名称",desc:'如“王太太”'},
+      {k:"状态",desc:"working/idle/shutdown"},
+      {k:"性格参数",tag:"json",desc:"动态难度调节"},
+      {fe:"前端使用：“练习”Tab → 面板(状态、动态)"}
+    ]}
+  ]},
+  { idx:4, name:"评估域", entities:[
+    { name:"评估报告", en:"EvaluationReport", fields:[
+      {k:"report_id",tag:"pk"},
+      {k:"session_id",tag:"fk"},
+      {k:"总分",desc:"满分50"},
+      {k:"各维度分数",desc:"5个维度单独存储"},
+      {k:"亮点列表",tag:"json",desc:"JSON数组"},
+      {k:"改进点列表",tag:"json",desc:"JSON数组"},
+      {k:"推荐下次练习场景"},
+      {k:"完整报告文本",desc:"Markdown"},
+      {k:"生成时间"},
+      {fe:"前端使用：“练习”Tab → 评估结果展示；“回顾”Tab → 历史报告列表"}
+    ]},
+    { name:"评估维度定义", en:"EvaluationDimension", fields:[
+      {k:"dimension_id",tag:"pk"},
+      {k:"名称",desc:"需求挖掘/产品介绍/异议处理/逼单/沟通协调"},
+      {k:"满分值",desc:"一般为10"},
+      {k:"评分标准文本"},
+      {fe:"前端使用：后台配置，不直接展示，但影响评分卡片"}
+    ]}
+  ]},
+  { idx:5, name:"任务与激励域", entities:[
+    { name:"每日任务模板", en:"DailyTaskTemplate", fields:[
+      {k:"task_id",tag:"pk"},
+      {k:"名称"},
+      {k:"描述"},
+      {k:"奖励积分"},
+      {k:"目标条件",desc:'如“完成1次陪练”'},
+      {fe:"前端使用：“任务”Tab → 每日任务列表"}
+    ]},
+    { name:"用户每日任务实例", en:"UserDailyTask", fields:[
+      {k:"instance_id",tag:"pk"},
+      {k:"user_id",tag:"fk"},
+      {k:"模板ID",tag:"fk"},
+      {k:"状态"},
+      {k:"完成时间"},
+      {fe:"前端使用：“任务”Tab → 任务状态及奖励领取"}
+    ]},
+    { name:"月度任务/里程碑", en:"Milestone", fields:[
+      {k:"milestone_id",tag:"pk"},
+      {k:"名称"},
+      {k:"所需条件",desc:"连续天数/总得分等"},
+      {k:"红利",desc:"称号/积分"},
+      {fe:"前端使用：“任务”Tab → 月度任务进度"}
+    ]},
+    { name:"经理分配任务", en:"ManagerAssignment", fields:[
+      {k:"assignment_id",tag:"pk"},
+      {k:"经理ID",tag:"fk"},
+      {k:"学员ID",tag:"fk"},
+      {k:"场景ID",tag:"fk"},
+      {k:"难度"},
+      {k:"截止时间"},
+      {k:"状态",desc:"待完成/已完成/逾期"},
+      {fe:"前端使用：“任务”Tab → 学员端显示分配任务；经理端分配界面"}
+    ]}
+  ]},
+  { idx:6, name:"知识库域", entities:[
+    { name:"产品知识", en:"ProductSkill", fields:[
+      {k:"product_id",tag:"pk"},
+      {k:"名称"},
+      {k:"价格"},
+      {k:"核心卖点"},
+      {k:"FABE话术"},
+      {k:"竞品对比要点"},
+      {fe:"前端使用：“练习”Tab → 话术提示（产品推荐时）"}
+    ]},
+    { name:"销售技巧", en:"SalesTechnique", fields:[
+      {k:"technique_id",tag:"pk"},
+      {k:"名称",desc:'如“SPIN提问法”'},
+      {k:"描述"},
+      {k:"示例话术"},
+      {fe:"前端使用：“练习”Tab → 话术提示（需求挖掘/异议处理）"}
+    ]},
+    { name:"客户画像模板", en:"PersonaTemplate", fields:[
+      {k:"persona_id",tag:"pk"},
+      {k:"名称",desc:'如“价格敏感型”'},
+      {k:"性格描述"},
+      {k:"典型反应"},
+      {fe:"前端使用：后端用于生成角色，前端仅展示标签"}
+    ]},
+    { name:"用户收藏话术", en:"UserFavoriteTip", fields:[
+      {k:"收藏ID",tag:"pk"},
+      {k:"user_id",tag:"fk"},
+      {k:"话术内容/引用"},
+      {k:"添加时间"},
+      {fe:"前端使用：“我的”Tab → 收藏话术列表"}
+    ]}
+  ]},
+  { idx:7, name:"数据统计域", entities:[
+    { name:"部门/公司统计", en:"CompanyStat", fields:[
+      {k:"company_id",tag:"fk"},
+      {k:"部门数"},
+      {k:"平均练习次数"},
+      {k:"平均分"},
+      {fe:"前端使用：经理视图 → 部门排名对比"}
+    ]},
+    { name:"百分位基准", en:"PercentileBenchmark", fields:[
+      {k:"维度/分段/百分比字段"},
+      {fe:"前端使用：“回顾”Tab → 对比分析（超过X%学员）"}
+    ]}
+  ]},
+  { idx:8, name:"系统配置域", entities:[
+    { name:"培训计划", en:"TrainingPlan", fields:[
+      {k:"plan_id",tag:"pk"},
+      {k:"名称"},
+      {k:"描述"},
+      {k:"创建者ID",tag:"fk"},
+      {k:"创建时间"},
+      {fe:"前端使用：“任务”Tab → 主线培训计划"}
+    ]},
+    { name:"培训任务", en:"TrainingTask", fields:[
+      {k:"task_id",tag:"pk"},
+      {k:"plan_id",tag:"fk"},
+      {k:"科目名称",desc:'如“价格异议处理”'},
+      {k:"描述"},
+      {k:"status",desc:"pending/in_progress/completed"},
+      {k:"blockedBy",desc:"依赖的任务ID数组"},
+      {k:"顺序",en:"order"},
+      {k:"得分",desc:"完成后的总分"},
+      {fe:"前端使用：“任务”Tab → 主线培训计划(依赖图)"}
+    ]},
+    { name:"操作日志", en:"OperationLog", fields:[
+      {k:"log_id",tag:"pk"},
+      {k:"user_id",tag:"fk"},
+      {k:"操作类型"},
+      {k:"操作内容"},
+      {k:"时间"},
+      {fe:"前端使用：后台审计，普通界面不可见"}
+    ]},
+    { name:"通知设置", en:"NotificationSetting", fields:[
+      {k:"user_id",tag:"fk"},
+      {k:"推送开关"},
+      {k:"邮件开关"},
+      {k:"勿扰时段"},
+      {fe:"前端使用：“我的”Tab → 通知设置"}
+    ]}
+  ]}
+];
+
+const tree = document.getElementById('tree');
+DATA.forEach(d=>{
+  const dom = document.createElement('div');
+  dom.className='domain';
+  let entHTML='';
+  d.entities.forEach(e=>{
+    let fHTML='';
+    e.fields.forEach(f=>{
+      let tags='';
+      if(f.tag) tags=`<span class="tag ${f.tag.toLowerCase()}">${f.tag}</span>`;
+      let en = f.en?`<span class="en">${f.en}</span>`:'';
+      let desc = f.desc?`<span class="desc"> — ${f.desc}</span>`:'';
+      let fe = f.fe?`<span class="fe">${f.fe}</span>`:'';
+      fHTML+=`<div class="field"><span class="k">${f.k}</span>${tags}${en}${desc}${fe}</div>`;
+    });
+    entHTML+=`<div class="entity"><div class="ename">${e.name} ${e.en?`<span class="en">${e.en}</span>`:''}</div><div class="fields">${fHTML}</div></div>`;
+  });
+  dom.innerHTML=`<div class="head"><span class="idx">${d.idx}</span><span class="title">${d.name}</span><span class="toggle">▼ 展开</span></div><div class="body">${entHTML}</div>`;
+  dom.querySelector('.head').addEventListener('click',()=>{
+    dom.classList.toggle('collapsed');
+    dom.querySelector('.toggle').textContent = dom.classList.contains('collapsed')?'▶ 展开':'▼ 展开';
+  });
+  tree.appendChild(dom);
+});
+</script>
+</body>
+</html>
