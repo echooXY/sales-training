@@ -23,10 +23,10 @@
 
 | 原型 | 在线预览地址 |
 |------|-------------|
-| 学员端（移动端手机壳） | `https://github.com/echooXY/sales-training/tree/main/prototype/营销导购陪练智能体-学员端.html` |
-| 管理端（B 端后台） | `https://github.com/echooXY/sales-training/tree/main/prototype/营销导购陪练智能体-管理端.html` |
-| 信息架构图（8 大域 · 字段级设计） | `https://github.com/echooXY/sales-training/tree/main/prototype/AI销售陪练系统-信息架构图.html` |
-| 功能模块图（6 大模块 · 交互思维导图） | `https://github.com/echooXY/sales-training/tree/main/prototype/AI销售陪练系统-功能模块图.html` |
+| 学员端（移动端） | `https://echooxy.github.io/sales-training/prototype/营销导购陪练智能体-学员端.html` |
+| 管理端（B 端后台） | `https://echooxy.github.io/sales-training/prototype/营销导购陪练智能体-管理端.html` |
+| 信息架构图（8 大域 · 字段级设计） | `https://echooxy.github.io/sales-training/prototype/AI销售陪练系统-信息架构图.html` |
+| 功能模块图（6 大模块 · 交互思维导图） | `https://echooxy.github.io/sales-training/prototype/AI销售陪练系统-功能模块图.html` |
 
 ---
 
